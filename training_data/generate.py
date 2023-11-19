@@ -11,7 +11,7 @@ print(f"\nNo.of Nodes: {len(duration)}, No.of edges = {len(edges)}\n")
 for i in range(len(duration)):
     print(f"Node: {i+1}, Processing Duration: {duration[i]}, Require: {demand[i]}")
 
-TaskGenerator(edges, 'dev_output')
+TaskGenerator(edges, 'dev_output.xml')
 
 # task.getXML(edges)
 
