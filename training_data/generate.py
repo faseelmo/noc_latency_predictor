@@ -1,17 +1,18 @@
 import utils.DAG_Generator as dag
 from utils.TASK_Generator import TaskGenerator
 
+num_of_nodes = 4
 edges, duration, demand, position = dag.workflows_generator(mode='default', 
-                                                            n=4,
+                                                            n=num_of_nodes,
                                                             alpha= 1,
                                                             beta= 2.0,
-                                                            max_out=3)
+                                                            max_out=2)
 
 print(f"\nNo.of Nodes: {len(duration)}, No.of edges = {len(edges)}\n")
 for i in range(len(duration)):
     print(f"Node: {i+1}, Processing Duration: {duration[i]}, Require: {demand[i]}")
 
-TaskGenerator(edges, 'dev_output.xml')
+TaskGenerator(edges, num_of_nodes,'dev_output.xml')
 
 # task.getXML(edges)
 

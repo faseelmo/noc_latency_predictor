@@ -1,16 +1,16 @@
 import xml.etree.ElementTree as ET
+import sys
 from xml.dom import minidom
 
 class TaskGenerator:
-    def __init__(self, edges, output):
+    def __init__(self, edges, nodes, output):
         self.edges = edges
         self.num_of_tasks = 0 # Gets Incremented each time createTask is called.
+        self.nodes = nodes
 
         self.root = self.initRoot()
         self.addDataType()
         self.addTasks()
-
-
 
         self.writeFile(output)
 
@@ -27,53 +27,48 @@ class TaskGenerator:
         self.addChild(data_type_node, 'name', ['value'], ['bit'])
 
     def addTasks(self):
-
-        start_edges, node_edges, exit_edges = self.organizeEdges()
         task_parent = self.addChild(self.root, 'tasks') 
         """
             Create 'Start' Task.
                 Single Task having 1 generate with single destination id 
                 but with multiple task ids [destination]
         """
-        self.createTask(self.num_of_tasks, task_parent, start_edges, toRequire=False, toGenerate=True)
+        self.createTask(self.num_of_tasks, task_parent, toRequire=False, toGenerate=True)
+
+        """
+            Create 'Node' Task.
+                Single Task possibly having multiple generate & requirement. 
+        """
+        self.createTask(self.num_of_tasks, task_parent, toRequire=True, toGenerate=True)
 
         """
             Create 'Exit' Task.
                 Single Task having only requirement. 
                 Could have multiple sources. 
         """
-        self.createTask(self.num_of_tasks, task_parent, exit_edges, toRequire=True, toGenerate=False)
+        self.createTask(self.num_of_tasks, task_parent, toRequire=True, toGenerate=False)
 
-        """
-            Create 'Node' Task.
-                Single Task possibly having multiple generate & requirement. 
-        """
-        self.createTask(self.num_of_tasks, task_parent, exit_edges, toRequire=True, toGenerate=True)
+    def createTask(self, id, task_parent, toRequire=False, toGenerate=False):
+        start_edges, _, exit_edges = self.organizeEdges(self.edges)
+        if toGenerate and not toRequire:
+            """Creating Start Node"""
+            task_node = self.createTaskHeader(task_parent)
+            self.createGenerate(task_node, start_edges)
+        if toRequire and not toGenerate:
+            """Creating Exit Node"""
+            task_node = self.createTaskHeader(task_parent)
+            self.createRequire(task_node, exit_edges)
+        if toGenerate and toRequire:
+            """Creating Normal Nodes"""
+            self.createRequireAndGenerate(task_parent)
 
-
-
-
-
-
-        print(f"Start Edge is {start_edges}")
-        print(f"Node Edge is {node_edges}")
-        print(f"Exit Edge is {exit_edges}")
-
-    def createTask(self, id, task_parent, edges, toRequire=False, toGenerate=False):
-
-        """Header for Task"""
-        task_node = self.addChild(task_parent, 'task', ['id'], [str(id)])
+    def createTaskHeader(self, task_parent):
+        task_node = self.addChild(task_parent, 'task', ['id'], [str(self.num_of_tasks)])
         self.addChild(task_node, 'start', ['min', 'max'], ["0", "0"])
         self.addChild(task_node, 'duration', ['min', 'max'], ["-1", "-1"])
         self.addChild(task_node, 'repeat', ['min', 'max'], ["1", "1"])
         self.num_of_tasks += 1
-
-        if toGenerate:
-            self.createGenerate(task_node, edges)
-        if toRequire:
-            self.createRequire(task_node, edges)
-        if toGenerate and toRequire:
-            print("Its complicated Lmao")
+        return task_node
 
     def createGenerate(self, task_node, edges):
         """Header for Generate"""
@@ -101,6 +96,29 @@ class TaskGenerator:
             self.addChild(requirement_node, 'source', ['value'], [str(edge[0])])
             self.addChild(requirement_node, 'count', ['min', 'max'], ["1", "1"])
 
+    def createRequireAndGenerate(self, task_parent):
+        for i in range(self.nodes):
+            task_node = self.createTaskHeader(task_parent)
+            node = i+1
+            node_edges = self.getNodeInfoFromEdges(node)
+            start_edges, node_edges, exit_edges = self.organizeEdges(node_edges)
+
+            if start_edges: 
+                edge = [(0, start_edges[0][1])] 
+                self.createRequire(task_node, edge)
+
+            if node_edges: 
+                for node_edge in node_edges:
+                    if node_edge[1] == node:
+                        self.createRequire(task_node, [node_edge])
+                    elif node == node_edge[0]:
+                        self.createGenerate(task_node, [node_edge])
+
+            if exit_edges: 
+                edge = [(exit_edges[0][0], self.nodes + 1 )] 
+                self.createGenerate(task_node, edge)
+
+
     def addChild(self, parent, child_name, key_list=[], value_list=[]):
         node = ET.SubElement(parent, child_name)
         if len(key_list) != 0:
@@ -108,13 +126,16 @@ class TaskGenerator:
                 node.set(key_list[i], value_list[i])
         return node
 
-    def organizeEdges(self):
+    def getNodeInfoFromEdges(self, node):
+        return [(x, y) for x, y in self.edges if node in (x, y)]
+
+    def organizeEdges(self, edges):
         start_edges = []
         exit_edges = []
         node_edges = []
 
         """Organizing Edges"""
-        for edge in self.edges:
+        for edge in edges:
             if edge[0] == 'Start':
                 start_edges.append(edge)
             elif edge[1] == 'Exit':
@@ -123,7 +144,6 @@ class TaskGenerator:
                 node_edges.append(edge)
 
         return start_edges, node_edges, exit_edges
-
 
 
     def writeFile(self, output_file):
