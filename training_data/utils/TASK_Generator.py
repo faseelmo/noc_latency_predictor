@@ -1,5 +1,4 @@
 import xml.etree.ElementTree as ET
-import sys
 from xml.dom import minidom
 
 class TaskGenerator:
