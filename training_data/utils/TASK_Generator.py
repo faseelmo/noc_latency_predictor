@@ -2,10 +2,11 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 class TaskGenerator:
-    def __init__(self, edges, nodes, output):
+    def __init__(self, edges, nodes, duration, output):
         self.edges = edges
         self.num_of_tasks = 0 # Gets Incremented each time createTask is called.
         self.nodes = nodes
+        self.duration = duration
 
         self.root = self.initRoot()
         self.addDataType()
@@ -61,10 +62,10 @@ class TaskGenerator:
             """Creating Normal Nodes"""
             self.createRequireAndGenerate(task_parent)
 
-    def createTaskHeader(self, task_parent):
+    def createTaskHeader(self, task_parent, duration = -1):
         task_node = self.addChild(task_parent, 'task', ['id'], [str(self.num_of_tasks)])
         self.addChild(task_node, 'start', ['min', 'max'], ["0", "0"])
-        self.addChild(task_node, 'duration', ['min', 'max'], ["-1", "-1"])
+        self.addChild(task_node, 'duration', ['min', 'max'], [str(duration), str(duration)])
         self.addChild(task_node, 'repeat', ['min', 'max'], ["1", "1"])
         self.num_of_tasks += 1
         return task_node
@@ -97,7 +98,8 @@ class TaskGenerator:
 
     def createRequireAndGenerate(self, task_parent):
         for i in range(self.nodes):
-            task_node = self.createTaskHeader(task_parent)
+            duration = self.duration[i]
+            task_node = self.createTaskHeader(task_parent, duration=duration)
             node = i+1
             node_edges = self.getNodeInfoFromEdges(node)
             start_edges, node_edges, exit_edges = self.organizeEdges(node_edges)

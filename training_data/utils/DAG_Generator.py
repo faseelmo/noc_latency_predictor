@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import networkx as nx 
 
 class DAG:
-    def __init__(self, nodes, max_out = 2, alpha = 1, beta = 1.0 ):
+    def __init__(self, nodes, max_out = 2, alpha = 0.5, beta = 1.0 ):
         self.nodes = nodes 
         self.max_out = max_out 
         self.alpha = alpha  
@@ -133,5 +133,18 @@ class DAG:
         nx.draw_networkx(g1, arrows=True, pos=self.position)
         plt.savefig("DAG.png", format="PNG")
         return plt.clf
+
+    
+    def getInfo(self):
+        print(f"\nNo.of Nodes: {self.nodes}, No.of edges = {len(self.edges)}\n")
+        for i in range(self.nodes):
+            print(f"\nNode: {i+1} \nProcessing: Duration = {self.duration[i]}, \nRequire: CPU = {self.demand[i][0]}, Memory = {self.demand[i][1]}")
+
+        print("\nEdges")
+        print(self.edges)
+
+        print(f"\nInto Degree: {self.into_degree}")
+        print(f"Out Degree: {self.out_degree}")
+        print(f"Max Out: {self.max_out}")
 
 
