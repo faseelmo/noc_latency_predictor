@@ -1,12 +1,14 @@
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
+import math
 
 class TaskGenerator:
-    def __init__(self, edges, nodes, duration, output):
+    def __init__(self, edges, nodes, duration, demand, output):
         self.edges = edges
         self.num_of_tasks = 0 # Gets Incremented each time createTask is called.
         self.nodes = nodes
         self.duration = duration
+        self.demand = demand
 
         self.root = self.initRoot()
         self.addDataType()
@@ -86,7 +88,7 @@ class TaskGenerator:
             self.addChild(destination_node, 'task', ['value'], [str(edge[1])])
             destination_id += 1
 
-    def createRequire(self, task_node, edges):
+    def createRequire(self, task_node, edges, demand=1):
         """Header for Generate"""
         requires_node = self.addChild(task_node, 'requires')
         requirement_id = 0
@@ -94,12 +96,14 @@ class TaskGenerator:
             requirement_node = self.addChild(requires_node, 'requirement' ,['id'], [str(requirement_id)])
             self.addChild(requirement_node, 'type', ['value'], ["0"])
             self.addChild(requirement_node, 'source', ['value'], [str(edge[0])])
-            self.addChild(requirement_node, 'count', ['min', 'max'], ["1", "1"])
+            self.addChild(requirement_node, 'count', ['min', 'max'], [str(demand), str(demand)])
 
     def createRequireAndGenerate(self, task_parent):
         for i in range(self.nodes):
             duration = self.duration[i]
-            task_node = self.createTaskHeader(task_parent, duration=duration)
+            task_node = self.createTaskHeader(task_parent, 
+                                              duration=duration #remove duration arg if required
+                                              ) 
             node = i+1
             node_edges = self.getNodeInfoFromEdges(node)
             start_edges, node_edges, exit_edges = self.organizeEdges(node_edges)
@@ -108,17 +112,20 @@ class TaskGenerator:
                 edge = [(0, start_edges[0][1])] 
                 self.createRequire(task_node, edge)
 
-            if node_edges: 
+            demand = math.ceil(self.demand[i][0])
+            if node_edges:  
                 for node_edge in node_edges:
                     if node_edge[1] == node:
-                        self.createRequire(task_node, [node_edge])
+                        self.createRequire(task_node, 
+                                           [node_edge], 
+                                           demand #remove demand arg if required
+                                           ) 
                     elif node == node_edge[0]:
                         self.createGenerate(task_node, [node_edge])
 
             if exit_edges: 
                 edge = [(exit_edges[0][0], self.nodes + 1 )] 
                 self.createGenerate(task_node, edge)
-
 
     def addChild(self, parent, child_name, key_list=[], value_list=[]):
         node = ET.SubElement(parent, child_name)
@@ -145,7 +152,6 @@ class TaskGenerator:
                 node_edges.append(edge)
 
         return start_edges, node_edges, exit_edges
-
 
     def writeFile(self, output_file):
         rough_string = ET.tostring(self.root, 'utf-8')

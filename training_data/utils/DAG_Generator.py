@@ -1,11 +1,11 @@
 """
  Code forked and modified from https://github.com/Livioni/DAG_Generator 
 """
-
 import random, math 
 import numpy as np 
 import matplotlib.pyplot as plt 
 import networkx as nx 
+import sys
 
 class DAG:
     def __init__(self, nodes, max_out = 2, alpha = 0.5, beta = 1.0 ):
@@ -122,29 +122,27 @@ class DAG:
 
         #############################################plot###################################################
         self.edges = edges
-        # self.position = position 
         self.into_degree = into_degree
         self.out_degree = out_degree
-        # return edges,into_degree,out_degree,position
 
     def plot_DAG(self):
+        # To do: Add labels to Nodes
         g1 = nx.DiGraph()
         g1.add_edges_from(self.edges)
         nx.draw_networkx(g1, arrows=True, pos=self.position)
         plt.savefig("DAG.png", format="PNG")
         return plt.clf
 
-    
     def getInfo(self):
         print(f"\nNo.of Nodes: {self.nodes}, No.of edges = {len(self.edges)}\n")
         for i in range(self.nodes):
             print(f"\nNode: {i+1} \nProcessing: Duration = {self.duration[i]}, \nRequire: CPU = {self.demand[i][0]}, Memory = {self.demand[i][1]}")
-
         print("\nEdges")
         print(self.edges)
-
         print(f"\nInto Degree: {self.into_degree}")
         print(f"Out Degree: {self.out_degree}")
         print(f"Max Out: {self.max_out}")
+        print("\nDemand")
+        print(self.demand)
 
 
