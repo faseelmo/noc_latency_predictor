@@ -1,20 +1,24 @@
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import math
+import sys
+# from DAG_Generator import DAG
 
 class TaskGenerator:
-    def __init__(self, edges, nodes, duration, demand, output):
-        self.edges = edges
+    def __init__(self, dag, output_file):
+        self.nodes = dag.nodes
+        self.edges = dag.edges
+        self.duration = dag.duration
+        self.demand = dag.demand
         self.num_of_tasks = 0 # Gets Incremented each time createTask is called.
-        self.nodes = nodes
-        self.duration = duration
-        self.demand = demand
 
         self.root = self.initRoot()
         self.addDataType()
         self.addTasks()
 
-        self.writeFile(output)
+        self.matchRequireDemand()
+
+        self.writeFile(output_file)
 
     def initRoot(self):
         root_node = ET.Element('data') 
@@ -25,7 +29,7 @@ class TaskGenerator:
         data_type_nodes = self.addChild(self.root, 'dataTypes')
 
         """Modify the following code to add More Data Types"""
-        data_type_node = self.addChild(data_type_nodes, 'dataTypes', ['id'], ['0'])
+        data_type_node = self.addChild(data_type_nodes, 'dataType', ['id'], ['0'])
         self.addChild(data_type_node, 'name', ['value'], ['bit'])
 
     def addTasks(self):
@@ -35,23 +39,23 @@ class TaskGenerator:
                 Single Task having 1 generate with single destination id 
                 but with multiple task ids [destination]
         """
-        self.createTask(self.num_of_tasks, task_parent, toRequire=False, toGenerate=True)
+        self.createTask(task_parent, toRequire=False, toGenerate=True)
 
         """
             Create 'Node' Task.
                 Single Task possibly having multiple generate & requirement. 
         """
-        self.createTask(self.num_of_tasks, task_parent, toRequire=True, toGenerate=True)
+        self.createTask(task_parent, toRequire=True, toGenerate=True)
 
         """
             Create 'Exit' Task.
                 Single Task having only requirement. 
                 Could have multiple sources. 
         """
-        self.createTask(self.num_of_tasks, task_parent, toRequire=True, toGenerate=False)
+        self.createTask(task_parent, toRequire=True, toGenerate=False)
 
-    def createTask(self, id, task_parent, toRequire=False, toGenerate=False):
-        start_edges, _, exit_edges = self.organizeEdges(self.edges)
+    def createTask(self, task_parent, toRequire=False, toGenerate=False):
+        start_edges, node_edges, exit_edges = self.organizeEdges(self.edges)
         if toGenerate and not toRequire:
             """Creating Start Node"""
             task_node = self.createTaskHeader(task_parent)
@@ -62,6 +66,7 @@ class TaskGenerator:
             self.createRequire(task_node, exit_edges)
         if toGenerate and toRequire:
             """Creating Normal Nodes"""
+            # if node_edges: 
             self.createRequireAndGenerate(task_parent)
 
     def createTaskHeader(self, task_parent, duration = -1):
@@ -108,11 +113,21 @@ class TaskGenerator:
             node_edges = self.getNodeInfoFromEdges(node)
             start_edges, node_edges, exit_edges = self.organizeEdges(node_edges)
 
+            demand = math.ceil(self.demand[i][0])
+
+            if start_edges and exit_edges and (not node_edges) :
+                """Single Node Condition, Creates Require and Generate and then skips"""
+                print("\n-- [Warning] Single Node Condtion -- \n")
+                edge = [(0, start_edges[0][1])] 
+                self.createRequire(task_node, edge, demand)
+                edge = [(exit_edges[0][0], self.nodes + 1 )] 
+                self.createGenerate(task_node, edge)
+                continue
+
             if start_edges: 
                 edge = [(0, start_edges[0][1])] 
                 self.createRequire(task_node, edge)
 
-            demand = math.ceil(self.demand[i][0])
             if node_edges:  
                 for node_edge in node_edges:
                     if node_edge[1] == node:
@@ -122,6 +137,7 @@ class TaskGenerator:
                                            ) 
                     elif node == node_edge[0]:
                         self.createGenerate(task_node, [node_edge])
+
 
             if exit_edges: 
                 edge = [(exit_edges[0][0], self.nodes + 1 )] 
@@ -161,5 +177,20 @@ class TaskGenerator:
         of.write(data)
         of.close()
 
+    def matchRequireDemand(self):
+        print("inisde Match Require Demand")
+        root = self.root 
+        all_tasks = root.findall('.//tasks/task')
+        tasks_num = len(all_tasks)
 
+        # if 'requires' in all_tasks[1].attrib
+        # print(all_tasks[1].attrib)
+        test_task = all_tasks[1]
 
+        current_task_id = test_task.attrib
+        print(f"Current Task ID is {current_task_id}")
+        for elements in test_task:
+            if 'requires' in elements.tag:
+                for requirement in elements.findall('requirement'):
+                    require_count = requirement.find('count').attrib['min']
+                    print(require_count)

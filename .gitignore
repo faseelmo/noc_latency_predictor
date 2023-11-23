@@ -1,3 +1,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
+training_data/ratatoskr/BuffUsage
+training_data/ratatoskr/VCUsage
+training_data/ratatoskr/results

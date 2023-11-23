@@ -8,7 +8,7 @@ import networkx as nx
 import sys
 
 class DAG:
-    def __init__(self, nodes, max_out = 2, alpha = 0.5, beta = 1.0 ):
+    def __init__(self, nodes, max_out = 2, alpha = 1.0, beta = 1.0 ):
         self.nodes = nodes 
         self.max_out = max_out 
         self.alpha = alpha  
