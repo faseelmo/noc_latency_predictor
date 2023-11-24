@@ -16,7 +16,9 @@ class TaskGenerator:
         self.addDataType()
         self.addTasks()
 
-        self.matchRequireDemand()
+        if dag.withDemand:
+            print("Matching Require and Demand")
+            self.matchRequireDemand()
 
         self.writeFile(output_file)
 
@@ -66,7 +68,6 @@ class TaskGenerator:
             self.createRequire(task_node, exit_edges)
         if toGenerate and toRequire:
             """Creating Normal Nodes"""
-            # if node_edges: 
             self.createRequireAndGenerate(task_parent)
 
     def createTaskHeader(self, task_parent, duration = -1):
@@ -93,10 +94,14 @@ class TaskGenerator:
             self.addChild(destination_node, 'task', ['value'], [str(edge[1])])
             destination_id += 1
 
-    def createRequire(self, task_node, edges, demand=1):
+    def createRequire(self, task_node, edges, demand=1, firstRequire=True, requirement_id = 0):
         """Header for Generate"""
-        requires_node = self.addChild(task_node, 'requires')
-        requirement_id = 0
+        if firstRequire:
+            requires_node = self.addChild(task_node, 'requires')
+        else: 
+            requires_node = task_node.find('requires')
+            print(requires_node)
+            print("Require already present")
         for edge in edges:
             requirement_node = self.addChild(requires_node, 'requirement' ,['id'], [str(requirement_id)])
             self.addChild(requirement_node, 'type', ['value'], ["0"])
@@ -106,9 +111,7 @@ class TaskGenerator:
     def createRequireAndGenerate(self, task_parent):
         for i in range(self.nodes):
             duration = self.duration[i]
-            task_node = self.createTaskHeader(task_parent, 
-                                              duration=duration #remove duration arg if required
-                                              ) 
+            task_node = self.createTaskHeader(task_parent, duration=duration) #remove duration arg if required 
             node = i+1
             node_edges = self.getNodeInfoFromEdges(node)
             start_edges, node_edges, exit_edges = self.organizeEdges(node_edges)
@@ -129,15 +132,17 @@ class TaskGenerator:
                 self.createRequire(task_node, edge)
 
             if node_edges:  
+                first_require_flag = True
+                requirement_id = 0
                 for node_edge in node_edges:
                     if node_edge[1] == node:
-                        self.createRequire(task_node, 
-                                           [node_edge], 
-                                           demand #remove demand arg if required
-                                           ) 
+                        print(f"Flag is {first_require_flag}")
+                        self.createRequire(task_node, [node_edge], demand , first_require_flag, requirement_id )#remove demand arg if required
+                        first_require_flag = False
+                        requirement_id += 1
+                        print("Flag Changed")
                     elif node == node_edge[0]:
                         self.createGenerate(task_node, [node_edge])
-
 
             if exit_edges: 
                 edge = [(exit_edges[0][0], self.nodes + 1 )] 
@@ -178,19 +183,25 @@ class TaskGenerator:
         of.close()
 
     def matchRequireDemand(self):
-        print("inisde Match Require Demand")
         root = self.root 
         all_tasks = root.findall('.//tasks/task')
-        tasks_num = len(all_tasks)
+        for task in all_tasks:
+            current_task_id = task.attrib['id']
+            for requirement in task.findall('requires/requirement'):
+                require_count = requirement.find('count').attrib['min']
+                source_id = requirement.find('source').attrib['value']
+                self.changeGenerateCount(source_id, current_task_id, require_count )
 
-        # if 'requires' in all_tasks[1].attrib
-        # print(all_tasks[1].attrib)
-        test_task = all_tasks[1]
 
-        current_task_id = test_task.attrib
-        print(f"Current Task ID is {current_task_id}")
-        for elements in test_task:
-            if 'requires' in elements.tag:
-                for requirement in elements.findall('requirement'):
-                    require_count = requirement.find('count').attrib['min']
-                    print(require_count)
+    def changeGenerateCount(self, source_id, destination_id, new_count):
+        root = self.root 
+        all_tasks = root.findall('.//tasks/task')
+
+        for task in all_tasks:
+            if task.attrib['id'] == source_id:
+                destinations = task.findall('generates/possibility/destinations/destination')
+                for destination in destinations:
+                    task_id = destination.find('task').attrib['value']
+                    if task_id == destination_id:
+                        destination.find('count').attrib['min'] = str(new_count)
+                        destination.find('count').attrib['max'] = str(new_count)

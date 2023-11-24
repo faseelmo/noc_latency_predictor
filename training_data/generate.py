@@ -7,8 +7,8 @@ from utils.DAG_Generator import DAG
     set_beta = [0.0,0.5,1.0,2.0]                         #DAG regularity
 """
 
-num_of_nodes = 1
-dag = DAG(nodes=num_of_nodes, max_out=3)
+num_of_nodes = 3
+dag = DAG(nodes=num_of_nodes, max_out=3, withDemand=False)
 dag.plot_DAG()
 dag.getInfo()
 

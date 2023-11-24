@@ -8,12 +8,13 @@ import networkx as nx
 import sys
 
 class DAG:
-    def __init__(self, nodes, max_out = 2, alpha = 1.0, beta = 1.0 ):
+    def __init__(self, nodes, max_out = 3, alpha = 0.5, beta = 1.0, withDemand=True ):
         self.nodes = nodes 
         self.max_out = max_out 
         self.alpha = alpha  
         self.beta = beta
         self.duration = []
+        self.withDemand = withDemand
         self.demand = []
         self.position = {'Start':(0,4),'Exit':(10,4)}
         self.generator()
@@ -36,10 +37,17 @@ class DAG:
 
         # Initialize resource requirements
         for i in range(len(self.into_degree)):
-            if random.random() < 0.5:
-                self.demand.append((random.uniform(0.25 * r, 0.5 * r), random.uniform(0.05 * r, 0.01 * r)))
-            else:
-                self.demand.append((random.uniform(0.05 * r, 0.01 * r), random.uniform(0.25 * r, 0.5 * r)))
+            if self.withDemand:
+                if random.random() < 0.5:
+                    cpu_demand = random.uniform(0.25 * r, 0.5 * r)
+                    mem_demand = random.uniform(0.05 * r, 0.01 * r)
+                    self.demand.append((cpu_demand, mem_demand))
+                else:
+                    cpu_demand = random.uniform(0.05 * r, 0.01 * r)
+                    mem_demand = random.uniform(0.25 * r, 0.5 * r)
+                    self.demand.append((cpu_demand, mem_demand))
+            else: 
+                self.demand.append((1, 1))
 
     def DAGs_generate(self):
 
