@@ -8,13 +8,14 @@ import networkx as nx
 import sys
 
 class DAG:
-    def __init__(self, nodes, max_out = 3, alpha = 0.5, beta = 1.0, withDemand=True ):
+    def __init__(self, nodes, max_out = 3, alpha = 0.5, beta = 1.0, withDemand=False , withDuration=False):
         self.nodes = nodes 
         self.max_out = max_out 
         self.alpha = alpha  
         self.beta = beta
         self.duration = []
         self.withDemand = withDemand
+        self.withDuration = withDuration
         self.demand = []
         self.position = {'Start':(0,4),'Exit':(10,4)}
         self.generator()
@@ -28,12 +29,15 @@ class DAG:
 
         # Initialization Duration
         for i in range(len(self.into_degree)):
-            if random.random() < prob:
-                # duration.append(random.uniform(t,3*t))
-                self.duration.append(random.sample(range(0, 3 * t), 1)[0])
-            else:
-                # duration.append(random.uniform(5*t,10*t))
-                self.duration.append(random.sample(range(5 * t, 10 * t), 1)[0])
+            if self.withDuration:
+                if random.random() < prob:
+                    # duration.append(random.uniform(t,3*t))
+                    self.duration.append(random.sample(range(0, 3 * t), 1)[0])
+                else:
+                    # duration.append(random.uniform(5*t,10*t))
+                    self.duration.append(random.sample(range(5 * t, 10 * t), 1)[0])
+            else: 
+                self.duration.append(-1)
 
         # Initialize resource requirements
         for i in range(len(self.into_degree)):
