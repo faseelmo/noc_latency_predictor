@@ -8,7 +8,7 @@ from utils.DAG_Generator import DAG
 """
 
 num_of_nodes = 2
-dag = DAG(nodes=num_of_nodes, max_out=3, withDemand=True, withDuration=False) #withDuration sim dosent work
+dag = DAG(nodes=num_of_nodes, max_out=3, withDemand=False, withDuration=False) #withDuration sim dosent work
 dag.plot_DAG()
 dag.getInfo()
 
