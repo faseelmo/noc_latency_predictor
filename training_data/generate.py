@@ -1,5 +1,6 @@
 from utils.TASK_Generator import TaskGenerator
 from utils.DAG_Generator import DAG
+from utils.Map_Generator import MapGenerator
 
 """
     set_max_out = [1,2,3,4,5]                            #max out_degree of one node
@@ -12,6 +13,12 @@ dag = DAG(nodes=num_of_nodes, max_out=3, withDemand=False, withDuration=False) #
 dag.plot_DAG()
 dag.getInfo()
 
+sim_path = 'ratatoskr/config/'
+task = TaskGenerator(dag, sim_path + 'data.xml')
 # TaskGenerator(dag, 'dev_output.xml')
-TaskGenerator(dag, 'ratatoskr/config/data.xml')
+
+''' Choose Network Between "4" or "2" '''
+network = '2'
+map = MapGenerator(task.num_of_tasks, network, sim_path + 'map.xml' )
+
 

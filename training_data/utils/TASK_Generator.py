@@ -2,7 +2,6 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import math
 import sys
-# from DAG_Generator import DAG
 
 class TaskGenerator:
     def __init__(self, dag, output_file):

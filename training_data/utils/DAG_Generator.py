@@ -18,6 +18,7 @@ class DAG:
         self.withDuration = withDuration
         self.demand = []
         self.position = {'Start':(0,4),'Exit':(10,4)}
+        # random.seed(10)
         self.generator()
 
     def generator(self):
