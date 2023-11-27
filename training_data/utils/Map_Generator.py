@@ -2,6 +2,9 @@ from utils.XML_Generator import XMLGenerator
 import random
 import shutil
 import os 
+import copy
+import matplotlib.pyplot as plt
+import networkx as nx
 
 class MapGenerator:
     def __init__(self, num_of_tasks, network, file_location):
@@ -46,6 +49,44 @@ class MapGenerator:
             Map.addChild(bind_root, 'node', ['value'], [str(pe)])
 
         Map.writeFile(map_root)
+
+    def getRenameDict(self, pos):
+        """Return a dictionary that can be used to rename the nodes in the original graph
+            Also returns a dictionary with positons of nodes in the new graph
+        """
+        rename = {}
+        final_task_id = self.num_of_tasks - 1
+        new_pos = copy.deepcopy(pos)
+
+        for task, node in self.map:
+            if task == 0:
+                new_pos[node] = new_pos.pop('Start')
+                rename['Start'] = node
+            elif task == final_task_id:
+                new_pos[node] = new_pos.pop('Exit')
+                rename['Exit'] = node
+            else: 
+                new_pos[node] = new_pos.pop(task)
+                rename[task] = node
+
+        return rename, new_pos
+
+    def doGraphRemapping(self, g1, renaming_dict):
+        return nx.relabel_nodes(g1, renaming_dict)
+
+    def plotTaskAndMap(self, task_graph, task_positon, map_graph, map_position):
+        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
+
+        nx.draw(task_graph, arrows=True,with_labels=True, pos=task_positon, ax=axes[0])
+        axes[0].set_title('Task Graph')
+
+        nx.draw(map_graph, arrows=True,with_labels=True, pos=map_position, ax=axes[1])
+        axes[1].set_title('Task Mapped to Network Node graph')
+        plt.savefig("Graphs.png", format="PNG")
+
+
+
+            
 
 
 

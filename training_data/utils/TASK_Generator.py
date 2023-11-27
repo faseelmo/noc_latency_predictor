@@ -99,8 +99,7 @@ class TaskGenerator:
             requires_node = self.addChild(task_node, 'requires')
         else: 
             requires_node = task_node.find('requires')
-            print(requires_node)
-            print("Require already present")
+            # print("Require already present")
         for edge in edges:
             requirement_node = self.addChild(requires_node, 'requirement' ,['id'], [str(requirement_id)])
             self.addChild(requirement_node, 'type', ['value'], ["0"])
@@ -135,11 +134,9 @@ class TaskGenerator:
                 requirement_id = 0
                 for node_edge in node_edges:
                     if node_edge[1] == node:
-                        print(f"Flag is {first_require_flag}")
                         self.createRequire(task_node, [node_edge], demand , first_require_flag, requirement_id )#remove demand arg if required
                         first_require_flag = False
                         requirement_id += 1
-                        print("Flag Changed")
                     elif node == node_edge[0]:
                         self.createGenerate(task_node, [node_edge])
 

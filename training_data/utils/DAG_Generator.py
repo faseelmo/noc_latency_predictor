@@ -8,7 +8,7 @@ import networkx as nx
 import sys
 
 class DAG:
-    def __init__(self, nodes, max_out = 3, alpha = 0.5, beta = 1.0, withDemand=False , withDuration=False):
+    def __init__(self, nodes, max_out = 3, alpha = 1.0, beta = 1.0, withDemand=False , withDuration=False):
         self.nodes = nodes 
         self.max_out = max_out 
         self.alpha = alpha  
@@ -18,7 +18,6 @@ class DAG:
         self.withDuration = withDuration
         self.demand = []
         self.position = {'Start':(0,4),'Exit':(10,4)}
-        # random.seed(10)
         self.generator()
 
     def generator(self):
@@ -138,11 +137,11 @@ class DAG:
         self.into_degree = into_degree
         self.out_degree = out_degree
 
-    def plot_DAG(self):
+    def plot_DAG(self, g1, position):
         # To do: Add labels to Nodes
-        g1 = nx.DiGraph()
-        g1.add_edges_from(self.edges)
-        nx.draw_networkx(g1, arrows=True, pos=self.position)
+        # print(f"Position is {position}")
+        # print(f"Nodes is {g1.nodes}")
+        nx.draw_networkx(g1, arrows=True, pos=position)
         plt.savefig("DAG.png", format="PNG")
         return plt.clf
 
@@ -158,4 +157,8 @@ class DAG:
         print("\nDemand")
         print(self.demand)
 
+    def getGraph(self):
+        g1 = nx.DiGraph()
+        g1.add_edges_from(self.edges)
+        return g1
 
