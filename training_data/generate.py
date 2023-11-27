@@ -1,4 +1,6 @@
 import argparse
+import subprocess
+import pandas as pd
 
 from utils.TASK_Generator import TaskGenerator
 from utils.DAG_Generator import DAG
@@ -6,9 +8,14 @@ from utils.Map_Generator import MapGenerator
 
 parser = argparse.ArgumentParser(description='Creates random tasks along with the required congfig files to run on ratatoskr')
 parser.add_argument('--tasks', type=int, default=2, help='Number of tasks (excluding Start and Exit Task)')
+parser.add_argument('--runSim', type=bool, default=False, help='If True, the script will also run the ratatoskr simulation')
+
 args = parser.parse_args()
 
 num_of_nodes = args.tasks
+run_sim = args.runSim
+
+
 network = '4' # Select '4' for 4x4 Mesh and '2' for 2x2 Mesh
 max_out = 3
 alpha = 0.5
@@ -43,3 +50,24 @@ mapper = MapGenerator(task.num_of_tasks, network, sim_path + 'map.xml' )
 rename_dict, new_pos = mapper.getRenameDict(dag.position)
 map_graph = mapper.doGraphRemapping(task_graph, rename_dict)
 mapper.plotTaskAndMap(task_graph, dag.position, map_graph, new_pos)
+
+
+
+"""
+    Automating The Pipeline
+"""
+sim_successfull_flag = False 
+successfull_string = '[ProcessingElementVC:startSending]  Node' + str(rename_dict['Exit'])
+
+if run_sim:
+    command = "cd ratatoskr/ && ./sim"
+    process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    for line in process.stdout:
+        if successfull_string in line:
+            print("\nSim Successfull")
+            sim_successfull_flag = True
+
+if sim_successfull_flag:
+    result = pd.read_csv('ratatoskr/results/report_Performance.csv', index_col=None)
+    print(result)
