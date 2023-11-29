@@ -64,10 +64,21 @@ if run_sim:
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
     for line in process.stdout:
+        print(line, end=' ')
         if successfull_string in line:
-            print("\nSim Successfull")
             sim_successfull_flag = True
 
 if sim_successfull_flag:
-    result = pd.read_csv('ratatoskr/results/report_Performance.csv', index_col=None)
-    print(result)
+    result = pd.read_csv('ratatoskr/results/report_Performance.csv', header=None)
+    result_values = result.values.tolist()
+
+    avg_flit_lat = result_values[0][1]
+    avg_packet_lat = result_values[1][1]
+    avg_network_lat = result_values[2][1]
+
+    latency_list = [avg_flit_lat, avg_packet_lat, avg_network_lat]
+    mapper.plotTaskAndMap(task_graph, dag.position, map_graph, new_pos, latency_list)
+
+
+
+

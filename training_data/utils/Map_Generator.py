@@ -74,7 +74,7 @@ class MapGenerator:
     def doGraphRemapping(self, g1, renaming_dict):
         return nx.relabel_nodes(g1, renaming_dict)
 
-    def plotTaskAndMap(self, task_graph, task_positon, map_graph, map_position):
+    def plotTaskAndMap(self, task_graph, task_positon, map_graph, map_position, lat_list=[]):
         fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
         nx.draw(task_graph, arrows=True,with_labels=True, pos=task_positon, ax=axes[0])
@@ -82,6 +82,12 @@ class MapGenerator:
 
         nx.draw(map_graph, arrows=True,with_labels=True, pos=map_position, ax=axes[1])
         axes[1].set_title('Task Mapped to Network Node graph')
+        
+        if lat_list:
+            axes[0].text(1, 0.7, 'Avg Flit Latency = ' + str(lat_list[0]), fontsize=12, color='red')
+            axes[0].text(1, 0.6, 'Avg Packet Latency = ' + str(lat_list[1]), fontsize=12, color='red')
+            axes[0].text(1, 0.5, 'Avg Packet Latency = ' + str(lat_list[2]), fontsize=12, color='red')
+
         plt.savefig("Graphs.png", format="PNG")
 
 
