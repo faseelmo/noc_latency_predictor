@@ -1,3 +1,4 @@
+from utils.XML_Generator import XMLGenerator 
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 import math
@@ -11,7 +12,9 @@ class TaskGenerator:
         self.demand = dag.demand
         self.num_of_tasks = 0 # Gets Incremented each time createTask is called.
 
-        self.root = self.initRoot()
+        self.xml_gen = XMLGenerator('data', output_file)
+        self.root = self.xml_gen.initRoot()
+
         self.addDataType()
         self.addTasks()
 
@@ -19,7 +22,7 @@ class TaskGenerator:
             print("Matching Require and Demand")
             self.matchRequireDemand()
 
-        self.writeFile(output_file)
+        self.xml_gen.writeFile(self.root)
 
     def initRoot(self):
         root_node = ET.Element('data') 
@@ -27,14 +30,14 @@ class TaskGenerator:
         return root_node
 
     def addDataType(self):
-        data_type_nodes = self.addChild(self.root, 'dataTypes')
+        data_type_nodes = self.xml_gen.addChild(self.root, 'dataTypes')
 
         """Modify the following code to add More Data Types"""
-        data_type_node = self.addChild(data_type_nodes, 'dataType', ['id'], ['0'])
-        self.addChild(data_type_node, 'name', ['value'], ['bit'])
+        data_type_node = self.xml_gen.addChild(data_type_nodes, 'dataType', ['id'], ['0'])
+        self.xml_gen.addChild(data_type_node, 'name', ['value'], ['bit'])
 
     def addTasks(self):
-        task_parent = self.addChild(self.root, 'tasks') 
+        task_parent = self.xml_gen.addChild(self.root, 'tasks') 
         """
             Create 'Start' Task.
                 Single Task having 1 generate with single destination id 
@@ -70,41 +73,41 @@ class TaskGenerator:
             self.createRequireAndGenerate(task_parent)
 
     def createTaskHeader(self, task_parent, duration = -1):
-        task_node = self.addChild(task_parent, 'task', ['id'], [str(self.num_of_tasks)])
-        self.addChild(task_node, 'start', ['min', 'max'], ["0", "0"])
-        self.addChild(task_node, 'duration', ['min', 'max'], [str(duration), str(duration)])
-        self.addChild(task_node, 'repeat', ['min', 'max'], ["1", "1"])
+        task_node = self.xml_gen.addChild(task_parent, 'task', ['id'], [str(self.num_of_tasks)])
+        self.xml_gen.addChild(task_node, 'start', ['min', 'max'], ["0", "0"])
+        self.xml_gen.addChild(task_node, 'duration', ['min', 'max'], [str(duration), str(duration)])
+        self.xml_gen.addChild(task_node, 'repeat', ['min', 'max'], ["1", "1"])
         self.num_of_tasks += 1
         return task_node
 
     def createGenerate(self, task_node, edges):
         """Header for Generate"""
-        generate_node = self.addChild(task_node, 'generates')
-        possibility_node = self.addChild(generate_node, 'possibility', ['id'], ["0"])
-        self.addChild(possibility_node, 'probability', ['value'], ["1"])
-        destinations_node = self.addChild(possibility_node, 'destinations')
+        generate_node = self.xml_gen.addChild(task_node, 'generates')
+        possibility_node = self.xml_gen.addChild(generate_node, 'possibility', ['id'], ["0"])
+        self.xml_gen.addChild(possibility_node, 'probability', ['value'], ["1"])
+        destinations_node = self.xml_gen.addChild(possibility_node, 'destinations')
         destination_id = 0
         for edge in edges:
-            destination_node = self.addChild(destinations_node, 'destination' ,['id'], [str(destination_id)])
-            self.addChild(destination_node, 'delay', ['min', 'max'], ["0", "0"])
-            self.addChild(destination_node, 'interval', ['min', 'max'], ["0", "0"])
-            self.addChild(destination_node, 'count', ['min', 'max'], ["1", "1"])
-            self.addChild(destination_node, 'type', ['value'], ["0"])
-            self.addChild(destination_node, 'task', ['value'], [str(edge[1])])
+            destination_node = self.xml_gen.addChild(destinations_node, 'destination' ,['id'], [str(destination_id)])
+            self.xml_gen.addChild(destination_node, 'delay', ['min', 'max'], ["0", "0"])
+            self.xml_gen.addChild(destination_node, 'interval', ['min', 'max'], ["0", "0"])
+            self.xml_gen.addChild(destination_node, 'count', ['min', 'max'], ["1", "1"])
+            self.xml_gen.addChild(destination_node, 'type', ['value'], ["0"])
+            self.xml_gen.addChild(destination_node, 'task', ['value'], [str(edge[1])])
             destination_id += 1
 
     def createRequire(self, task_node, edges, demand=1, firstRequire=True, requirement_id = 0):
         """Header for Generate"""
         if firstRequire:
-            requires_node = self.addChild(task_node, 'requires')
+            requires_node = self.xml_gen.addChild(task_node, 'requires')
         else: 
             requires_node = task_node.find('requires')
             # print("Require already present")
         for edge in edges:
-            requirement_node = self.addChild(requires_node, 'requirement' ,['id'], [str(requirement_id)])
-            self.addChild(requirement_node, 'type', ['value'], ["0"])
-            self.addChild(requirement_node, 'source', ['value'], [str(edge[0])])
-            self.addChild(requirement_node, 'count', ['min', 'max'], [str(demand), str(demand)])
+            requirement_node = self.xml_gen.addChild(requires_node, 'requirement' ,['id'], [str(requirement_id)])
+            self.xml_gen.addChild(requirement_node, 'type', ['value'], ["0"])
+            self.xml_gen.addChild(requirement_node, 'source', ['value'], [str(edge[0])])
+            self.xml_gen.addChild(requirement_node, 'count', ['min', 'max'], [str(demand), str(demand)])
 
     def createRequireAndGenerate(self, task_parent):
         for i in range(self.nodes):
@@ -144,13 +147,6 @@ class TaskGenerator:
                 edge = [(exit_edges[0][0], self.nodes + 1 )] 
                 self.createGenerate(task_node, edge)
 
-    def addChild(self, parent, child_name, key_list=[], value_list=[]):
-        node = ET.SubElement(parent, child_name)
-        if len(key_list) != 0:
-            for i in range(len(key_list)):
-                node.set(key_list[i], value_list[i])
-        return node
-
     def getNodeInfoFromEdges(self, node):
         return [(x, y) for x, y in self.edges if node in (x, y)]
 
@@ -169,14 +165,6 @@ class TaskGenerator:
                 node_edges.append(edge)
 
         return start_edges, node_edges, exit_edges
-
-    def writeFile(self, output_file):
-        rough_string = ET.tostring(self.root, 'utf-8')
-        reparsed = minidom.parseString(rough_string)
-        data = reparsed.toprettyxml(indent="  ")
-        of = open(output_file, 'w')
-        of.write(data)
-        of.close()
 
     def matchRequireDemand(self):
         root = self.root 

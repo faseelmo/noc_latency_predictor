@@ -84,9 +84,9 @@ class MapGenerator:
         axes[1].set_title('Task Mapped to Network Node graph')
         
         if lat_list:
-            axes[0].text(1, 0.7, 'Avg Flit Latency = ' + str(lat_list[0]), fontsize=12, color='red')
-            axes[0].text(1, 0.6, 'Avg Packet Latency = ' + str(lat_list[1]), fontsize=12, color='red')
-            axes[0].text(1, 0.5, 'Avg Packet Latency = ' + str(lat_list[2]), fontsize=12, color='red')
+            print("Printing Results on Graph")
+            text = 'Avg Flit Lat = ' + str(lat_list[0]) + ', Avg Packet Latency = ' + str(lat_list[1]) + ', Avg Network Lat = ' + str(lat_list[2])
+            fig.text(0.2, 0.05, text, fontsize=12, color='red')
 
         plt.savefig("Graphs.png", format="PNG")
 

@@ -52,7 +52,6 @@ map_graph = mapper.doGraphRemapping(task_graph, rename_dict)
 mapper.plotTaskAndMap(task_graph, dag.position, map_graph, new_pos)
 
 
-
 """
     Automating The Pipeline
 """
@@ -69,6 +68,7 @@ if run_sim:
             sim_successfull_flag = True
 
 if sim_successfull_flag:
+    print("\n----Sim Successfull----")
     result = pd.read_csv('ratatoskr/results/report_Performance.csv', header=None)
     result_values = result.values.tolist()
 
