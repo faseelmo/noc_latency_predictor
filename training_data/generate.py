@@ -18,7 +18,7 @@ run_sim = args.runSim
 
 network = '4' # Select '4' for 4x4 Mesh and '2' for 2x2 Mesh
 max_out = 3
-alpha = 0.5
+alpha = 1.0
 beta = 1.0
 
 """
