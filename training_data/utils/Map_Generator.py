@@ -62,6 +62,7 @@ class MapGenerator:
             if task == 0:
                 new_pos[node] = new_pos.pop('Start')
                 rename['Start'] = node
+                
             elif task == final_task_id:
                 new_pos[node] = new_pos.pop('Exit')
                 rename['Exit'] = node
@@ -74,13 +75,18 @@ class MapGenerator:
     def doGraphRemapping(self, g1, renaming_dict):
         return nx.relabel_nodes(g1, renaming_dict)
 
-    def plotTaskAndMap(self, task_graph, task_positon, map_graph, map_position, lat_list=[]):
+    def plotTaskAndMap(self, task_graph, task_position,  lat_list=[]):
+
+        rename_dict, new_pos = self.getRenameDict(task_position)
+        map_graph = self.doGraphRemapping(task_graph, rename_dict)
+
+
         fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
-        nx.draw(task_graph, arrows=True,with_labels=True, pos=task_positon, ax=axes[0])
+        nx.draw(task_graph, arrows=True,with_labels=True, pos=task_position, ax=axes[0])
         axes[0].set_title('Task Graph')
 
-        nx.draw(map_graph, arrows=True,with_labels=True, pos=map_position, ax=axes[1])
+        nx.draw(map_graph, arrows=True,with_labels=True, pos=new_pos, ax=axes[1])
         axes[1].set_title('Task Mapped to Network Node graph')
         
         if lat_list:
