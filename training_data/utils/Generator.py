@@ -21,6 +21,7 @@ class Generator:
 
     def generate(self, max_out, alpha, beta):
         dag, task_graph, task = self.generateDAGandTask(max_out, alpha, beta)
+        """Support for Multiple Random Mapping for a single Task"""
         for i in range(self.maps_per_task):
             print(f"Mapping Iteration is {i}")
             self.singleMappingAndSim(task.num_of_tasks, task_graph, dag.position)
@@ -51,9 +52,7 @@ class Generator:
 
         sim_successfull_flag = False 
         last_node = mapper.map[-1][1]
-
         successfull_string = '[ProcessingElementVC:startSending]  Node' + str(last_node)
-
         command = "cd ratatoskr/ && ./sim"
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
