@@ -12,34 +12,36 @@
  Routing table mode: 0
  Reading NoC layout: config/network.xml
  Reading Mapping config: config/map.xml
- [readMapping] task= 0 node= 21
- [readMapping] task= 1 node= 29
- [readMapping] task= 2 node= 20
- [readMapping] task= 3 node= 28
- [readMapping] task= 4 node= 24
- [readMapping] task= 5 node= 27
+ [readMapping] task= 0 node= 22
+ [readMapping] task= 1 node= 16
+ [readMapping] task= 2 node= 31
+ [readMapping] task= 3 node= 20
+ [readMapping] task= 4 node= 27
+ [readMapping] task= 5 node= 26
  Reading Data config: config/data.xml
  [readTaskFile]  from_task 0 to 1  count_min=1
  [readTaskFile]  from_task 0 to 2  count_min=1
  [readTaskFile]  from_task 0 to 3  count_min=1
- [readTaskFile]  from_task 1 to 4  count_min=1
- [readTaskFile]  from_task 2 to 4  count_min=1
- [readTaskFile]  from_task 3 to 4  count_min=1
+ [readTaskFile]  from_task 0 to 4  count_min=1
+ [readTaskFile]  from_task 1 to 5  count_min=1
+ [readTaskFile]  from_task 2 to 5  count_min=1
+ [readTaskFile]  from_task 3 to 5  count_min=1
  [readTaskFile]  from_task 4 to 5  count_min=1
  Report: connect() failed -> Connection refused
  Disabling database reports
  
  Task Testrun
- [ProcessingElementVC:execute]   Node21
- [ProcessingElementVC:startSending]  Node21
- [ProcessingElementVC:sending]  Node21 dest.destinationTask = 1 dest.id = 0 dest.dataType = 0
- [ProcessingElementVC:sending]  Node21 dest.destinationTask = 2 dest.id = 1 dest.dataType = 0
- [ProcessingElementVC:sending]  Node21 dest.destinationTask = 3 dest.id = 2 dest.dataType = 0
- [ProcessingElementVC:execute]   Node29
+ [ProcessingElementVC:execute]   Node22
+ [ProcessingElementVC:startSending]  Node22
+ [ProcessingElementVC:sending]  Node22 dest.destinationTask = 1 dest.id = 0 dest.dataType = 0
+ [ProcessingElementVC:sending]  Node22 dest.destinationTask = 2 dest.id = 1 dest.dataType = 0
+ [ProcessingElementVC:sending]  Node22 dest.destinationTask = 3 dest.id = 2 dest.dataType = 0
+ [ProcessingElementVC:sending]  Node22 dest.destinationTask = 4 dest.id = 3 dest.dataType = 0
+ [ProcessingElementVC:execute]   Node16
+ [ProcessingElementVC:execute]   Node31
  [ProcessingElementVC:execute]   Node20
- [ProcessingElementVC:execute]   Node28
- [ProcessingElementVC:execute]   Node24
  [ProcessingElementVC:execute]   Node27
+ [ProcessingElementVC:execute]   Node26
  Random seed 1234
  
  Starting Simulation!
@@ -59,89 +61,102 @@
  [ProcessingElementVC:receive]  Node29
  [ProcessingElementVC:receive]  Node30
  [ProcessingElementVC:receive]  Node31
- [AGO]  nodeID=29   dest=1
- [AGO]  nodeID=20   dest=2
-     1ns: NI5(Node21)		- Send Flit [H_1: 5-->13]
- [AGO]  nodeID=28   dest=3
- [ProcessingElementVC:execute]   Node21
-     4ns: Router5[North0]	- Send Flit [H_1: 5-->13]
-     7ns: Router9[North0]	- Send Flit [H_1: 5-->13]
-    10ns: Router13[Local0]	- Send Flit [H_1: 5-->13]
-    33ns: NI5(Node21)		- Send Flit [H_33: 5-->4]
-    37ns: Router5[ West0]	- Send Flit [H_33: 5-->4]
-    40ns: Router4[Local0]	- Send Flit [H_33: 5-->4]
-    41ns: NI13(Node29)		- Receive Flit [T_32: 5-->13]
- [ProcessingElementVC:receive]  Node29
- [ProcessingElementVC:receive]  Node29 total received 1 of type0
- [ProcessingElementVC:check]  Node29 neededAmmount 1 of type 0 received 1
- [ProcessingElementVC:startSending]  Node29
- [ProcessingElementVC:sending]  Node29 dest.destinationTask = 4 dest.id = 0 dest.dataType = 0
- [AGO]  nodeID=24   dest=4
- [ProcessingElementVC:execute]   Node29
-    43ns: NI13(Node29)		- Send Flit [H_65: 13-->8]
-    46ns: Router13[ West0]	- Send Flit [H_65: 13-->8]
-    49ns: Router12[South0]	- Send Flit [H_65: 13-->8]
-    52ns: Router8[Local0]	- Send Flit [H_65: 13-->8]
-    66ns: NI5(Node21)		- Send Flit [H_97: 5-->12]
-    70ns: Router5[ West0]	- Send Flit [H_97: 5-->12]
-    71ns: NI4(Node20)		- Receive Flit [T_64: 5-->4]
+ [AGO]  nodeID=16   dest=1
+ [AGO]  nodeID=31   dest=2
+     1ns: NI6(Node22)		- Send Flit [H_1: 6-->0]
+ [AGO]  nodeID=20   dest=3
+ [AGO]  nodeID=27   dest=4
+ [ProcessingElementVC:execute]   Node22
+     4ns: Router6[ West0]	- Send Flit [H_1: 6-->0]
+     7ns: Router5[ West0]	- Send Flit [H_1: 6-->0]
+    10ns: Router4[South0]	- Send Flit [H_1: 6-->0]
+    13ns: Router0[Local0]	- Send Flit [H_1: 6-->0]
+    33ns: NI6(Node22)		- Send Flit [H_33: 6-->15]
+    37ns: Router6[ East0]	- Send Flit [H_33: 6-->15]
+    40ns: Router7[North0]	- Send Flit [H_33: 6-->15]
+    43ns: Router11[North0]	- Send Flit [H_33: 6-->15]
+    44ns: NI0(Node16)		- Receive Flit [T_32: 6-->0]
+ [ProcessingElementVC:receive]  Node16
+ [ProcessingElementVC:receive]  Node16 total received 1 of type0
+ [ProcessingElementVC:check]  Node16 neededAmmount 1 of type 0 received 1
+ [ProcessingElementVC:startSending]  Node16
+ [ProcessingElementVC:sending]  Node16 dest.destinationTask = 5 dest.id = 0 dest.dataType = 0
+ [AGO]  nodeID=26   dest=5
+ [ProcessingElementVC:execute]   Node16
+    46ns: NI0(Node16)		- Send Flit [H_65: 0-->10]
+    46ns: Router15[Local0]	- Send Flit [H_33: 6-->15]
+    49ns: Router0[ East0]	- Send Flit [H_65: 0-->10]
+    52ns: Router1[ East0]	- Send Flit [H_65: 0-->10]
+    55ns: Router2[North0]	- Send Flit [H_65: 0-->10]
+    58ns: Router6[North0]	- Send Flit [H_65: 0-->10]
+    61ns: Router10[Local0]	- Send Flit [H_65: 0-->10]
+    66ns: NI6(Node22)		- Send Flit [H_97: 6-->4]
+    70ns: Router6[ West0]	- Send Flit [H_97: 6-->4]
+    73ns: Router5[ West0]	- Send Flit [H_97: 6-->4]
+    76ns: Router4[Local0]	- Send Flit [H_97: 6-->4]
+    77ns: NI15(Node31)		- Receive Flit [T_64: 6-->15]
+ [ProcessingElementVC:receive]  Node31
+ [ProcessingElementVC:receive]  Node31 total received 1 of type0
+ [ProcessingElementVC:check]  Node31 neededAmmount 1 of type 0 received 1
+ [ProcessingElementVC:startSending]  Node31
+ [ProcessingElementVC:sending]  Node31 dest.destinationTask = 5 dest.id = 0 dest.dataType = 0
+ [AGO]  nodeID=26   dest=5
+ [ProcessingElementVC:execute]   Node31
+    79ns: NI15(Node31)		- Send Flit [H_129: 15-->10]
+    82ns: Router15[ West0]	- Send Flit [H_129: 15-->10]
+    85ns: Router14[South0]	- Send Flit [H_129: 15-->10]
+    88ns: Router10[Local1]	- Send Flit [H_129: 15-->10]
+    97ns: NI10(Node26)		- Receive Flit [T_96: 0-->10]
+ [ProcessingElementVC:receive]  Node26
+ [ProcessingElementVC:receive]  Node26 total received 1 of type0
+ [ProcessingElementVC:check]  Node26 neededAmmount 1 of type 0 received 1
+ [ProcessingElementVC:startSending]  Node26
+    99ns: NI6(Node22)		- Send Flit [H_161: 6-->11]
+   103ns: Router6[ East0]	- Send Flit [H_161: 6-->11]
+   106ns: Router7[North0]	- Send Flit [H_161: 6-->11]
+   107ns: NI4(Node20)		- Receive Flit [T_128: 6-->4]
  [ProcessingElementVC:receive]  Node20
  [ProcessingElementVC:receive]  Node20 total received 1 of type0
  [ProcessingElementVC:check]  Node20 neededAmmount 1 of type 0 received 1
  [ProcessingElementVC:startSending]  Node20
- [ProcessingElementVC:sending]  Node20 dest.destinationTask = 4 dest.id = 0 dest.dataType = 0
- [AGO]  nodeID=24   dest=4
+ [ProcessingElementVC:sending]  Node20 dest.destinationTask = 5 dest.id = 0 dest.dataType = 0
+ [AGO]  nodeID=26   dest=5
  [ProcessingElementVC:execute]   Node20
-    73ns: Router4[North0]	- Send Flit [H_97: 5-->12]
-    73ns: NI4(Node20)		- Send Flit [H_129: 4-->8]
-    76ns: Router4[North1]	- Send Flit [H_129: 4-->8]
-    76ns: Router8[North0]	- Send Flit [H_97: 5-->12]
-    79ns: Router12[Local0]	- Send Flit [H_97: 5-->12]
-    80ns: Router8[Local1]	- Send Flit [H_129: 4-->8]
-    85ns: NI8(Node24)		- Receive Flit [T_96: 13-->8]
- [ProcessingElementVC:receive]  Node24
- [ProcessingElementVC:receive]  Node24 total received 1 of type0
- [ProcessingElementVC:check]  Node24 neededAmmount 1 of type 0 received 1
- [ProcessingElementVC:startSending]  Node24
- [ProcessingElementVC:sending]  Node24 dest.destinationTask = 5 dest.id = 0 dest.dataType = 0
- [AGO]  nodeID=27   dest=5
- [ProcessingElementVC:execute]   Node24
-    87ns: NI8(Node24)		- Send Flit [H_161: 8-->11]
-    90ns: Router8[ East0]	- Send Flit [H_161: 8-->11]
-    93ns: Router9[ East0]	- Send Flit [H_161: 8-->11]
-    96ns: Router10[ East0]	- Send Flit [H_161: 8-->11]
-    99ns: Router11[Local0]	- Send Flit [H_161: 8-->11]
-   130ns: NI11(Node27)		- Receive Flit [T_192: 8-->11]
+   109ns: Router11[Local0]	- Send Flit [H_161: 6-->11]
+   109ns: NI4(Node20)		- Send Flit [H_193: 4-->10]
+   112ns: Router4[ East0]	- Send Flit [H_193: 4-->10]
+   115ns: Router5[ East0]	- Send Flit [H_193: 4-->10]
+   118ns: Router6[North0]	- Send Flit [H_193: 4-->10]
+   121ns: Router10[Local0]	- Send Flit [H_193: 4-->10]
+   128ns: NI10(Node26)		- Receive Flit [T_160: 15-->10]
+ [ProcessingElementVC:receive]  Node26
+ [ProcessingElementVC:receive]  Node26 total received 1 of type0
+   140ns: NI11(Node27)		- Receive Flit [T_192: 6-->11]
  [ProcessingElementVC:receive]  Node27
  [ProcessingElementVC:receive]  Node27 total received 1 of type0
  [ProcessingElementVC:check]  Node27 neededAmmount 1 of type 0 received 1
  [ProcessingElementVC:startSending]  Node27
-   137ns: NI12(Node28)		- Receive Flit [T_128: 5-->12]
- [ProcessingElementVC:receive]  Node28
- [ProcessingElementVC:receive]  Node28 total received 1 of type0
- [ProcessingElementVC:check]  Node28 neededAmmount 1 of type 0 received 1
- [ProcessingElementVC:startSending]  Node28
- [ProcessingElementVC:sending]  Node28 dest.destinationTask = 4 dest.id = 0 dest.dataType = 0
- [AGO]  nodeID=24   dest=4
- [ProcessingElementVC:execute]   Node28
-   139ns: NI12(Node28)		- Send Flit [H_193: 12-->8]
-   140ns: NI8(Node24)		- Receive Flit [T_160: 4-->8]
- [ProcessingElementVC:receive]  Node24
- [ProcessingElementVC:receive]  Node24 total received 1 of type0
-   142ns: Router12[South0]	- Send Flit [H_193: 12-->8]
-   145ns: Router8[Local0]	- Send Flit [H_193: 12-->8]
-   176ns: NI8(Node24)		- Receive Flit [T_224: 12-->8]
- [ProcessingElementVC:receive]  Node24
- [ProcessingElementVC:receive]  Node24 total received 2 of type0
+ [ProcessingElementVC:sending]  Node27 dest.destinationTask = 5 dest.id = 0 dest.dataType = 0
+ [AGO]  nodeID=26   dest=5
+ [ProcessingElementVC:execute]   Node27
+   142ns: NI11(Node27)		- Send Flit [H_225: 11-->10]
+   145ns: Router11[ West0]	- Send Flit [H_225: 11-->10]
+   148ns: Router10[Local1]	- Send Flit [H_225: 11-->10]
+   165ns: NI10(Node26)		- Receive Flit [T_224: 4-->10]
+ [ProcessingElementVC:receive]  Node26
+ [ProcessingElementVC:receive]  Node26 total received 2 of type0
+   188ns: NI10(Node26)		- Receive Flit [T_256: 11-->10]
+ [ProcessingElementVC:receive]  Node26
+ [ProcessingElementVC:receive]  Node26 total received 3 of type0
  Generating report of the simulation run into file report ... 
  
  Average Input Bandwidth  -nan Mb/sec
  Average Output Bandwidth -nan Mb/sec
   done.
  Lost Packets:   0
- Average flit latency: 10.20 ns.
- Average packet latency: 48.29 ns.
- Average network latency: 48.29 ns.
+ Average flit latency: 11.59 ns.
+ Average packet latency: 46.38 ns.
+ Average network latency: 46.38 ns.
  Random seed 1234
  Execution time: 0h 0 min and 3 seconds
  

@@ -12,6 +12,7 @@ class MapGenerator:
         self.network = network 
         self.map = self.doMap()
         self.createMapFile(file_location)
+        self.map_graph = None
     
     def getPEfromNetwork(self):
         network_file_path = 'ratatoskr/config/misc/networks/' 
@@ -78,15 +79,15 @@ class MapGenerator:
     def plotTaskAndMap(self, task_graph, task_position,  lat_list=[]):
 
         rename_dict, new_pos = self.getRenameDict(task_position)
-        map_graph = self.doGraphRemapping(task_graph, rename_dict)
-
+        self.map_graph = self.doGraphRemapping(task_graph, rename_dict)
+         
 
         fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
         nx.draw(task_graph, arrows=True,with_labels=True, pos=task_position, ax=axes[0])
         axes[0].set_title('Task Graph')
 
-        nx.draw(map_graph, arrows=True,with_labels=True, pos=new_pos, ax=axes[1])
+        nx.draw(self.map_graph, arrows=True,with_labels=True, pos=new_pos, ax=axes[1])
         axes[1].set_title('Task Mapped to Network Node graph')
         
         if lat_list:
