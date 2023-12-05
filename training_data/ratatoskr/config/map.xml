@@ -6,22 +6,22 @@
   </bind>
   <bind>
     <task value="1"/>
-    <node value="16"/>
-  </bind>
-  <bind>
-    <task value="2"/>
-    <node value="31"/>
-  </bind>
-  <bind>
-    <task value="3"/>
     <node value="20"/>
   </bind>
   <bind>
+    <task value="2"/>
+    <node value="16"/>
+  </bind>
+  <bind>
+    <task value="3"/>
+    <node value="31"/>
+  </bind>
+  <bind>
     <task value="4"/>
-    <node value="27"/>
+    <node value="30"/>
   </bind>
   <bind>
     <task value="5"/>
-    <node value="26"/>
+    <node value="21"/>
   </bind>
 </map>
