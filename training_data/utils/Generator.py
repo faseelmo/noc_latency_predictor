@@ -1,6 +1,8 @@
 import random
 import subprocess
 import pandas as pd
+import os
+import pickle
 
 
 from utils.TASK_Generator import TaskGenerator
@@ -8,31 +10,38 @@ from utils.DAG_Generator import DAG
 from utils.Map_Generator import MapGenerator
 
 class Generator:
-    def __init__(self, num_of_tasks=4, meshSize=4, maps_per_task=1,sim_count=0, runsim=False, randomDAG=True, allDAG=False):
+    def __init__(self, result_path='', num_of_tasks=4, meshSize=4, maps_per_task=1,sim_count=0, runsim=False, randomDAG=True, allDAG=False):
 
-        self.num_of_tasks = num_of_tasks 
+        self.allDAG = allDAG
         self.runsim = runsim
         self.randomDAG = randomDAG
-        self.allDAG = allDAG
-
-        self.sim_path = 'ratatoskr/config/'
         self.network = str(meshSize)
+        self.num_of_tasks = num_of_tasks 
         self.maps_per_task = maps_per_task
+
+        self.result_path = result_path
+        self.sim_path = 'ratatoskr/config/'
 
         self.set_max_out = [1,2,3,4,5]      #max out_degree of one node
         self.set_alpha = [0.5,1.0,1.5]      #DAG shape
         self.set_beta = [0.0,0.5,1.0,2.0]   #DAG regularity
         
-        self.sim_count = sim_count
         self.map_count = 0
+        self.sim_count = sim_count
 
         self.dag = None
         self.task = None
         self.mapper = None
         self.latency_list = []
+        self.sim_time_string = ''
+        self.total_sims_required = 0
         self.sim_successfull_flag = False
 
         if self.allDAG:
+            if result_path == '':
+                raise ValueError("If allDAG=True, must specify valid result_path argument")
+            self.showSimInfo()
+            self.checkResultPath()
             self.runAllSim()
 
     def runAllSim(self):
@@ -77,6 +86,9 @@ class Generator:
                 file.write(line + ' ')
                 if successfull_string in line:
                     self.sim_successfull_flag = True
+                if 'Execution time' in line: 
+                    start_index = line.index(':')
+                    self.sim_time_string = line[start_index+2:]
 
         if self.sim_successfull_flag:
             # print("\n----Sim Successfull----")
@@ -96,10 +108,10 @@ class Generator:
         result["alpha"] = self.dag.alpha
         result["beta"] = self.dag.beta
         result['network'] = self.network
-        # result["task_graph"] = self.task.task_graph
-        # result["map_graph"] = self.mapper.map_graph
-        # result["demand"] = self.task.demand
-        # result["duration"] = self.task.duration
+        result["task_graph"] = self.task.task_graph
+        result["map_graph"] = self.mapper.map_graph
+        result["demand"] = self.task.demand
+        result["duration"] = self.task.duration
         result["task_num"] = self.task.num_of_tasks
         result["sim_successful"] = self.sim_successfull_flag
         result['avg_flit_lat'] = self.latency_list[0]
@@ -108,8 +120,14 @@ class Generator:
 
         self.sim_count += 1
 
-        print(f"\n[{self.sim_count}]Task_Num: {result['task_num']}, Map_Count: {self.map_count}")
-        # print(result)
+        print(f"[{self.sim_count}/{self.total_sims_required}]Task_Num: {result['task_num']}, Map_Count: {self.map_count}, Sim_Successful: {self.sim_successfull_flag}, Sim_Time: {self.sim_time_string} ")
+
+        file_name = str(self.sim_count) + '.pickle'
+        file_path = os.path.join(self.result_path,file_name)
+
+        with open(file_path, 'wb') as file:
+            pickle.dump(result, file)
+
         return 
 
     def getRandomDAGParameters(self, showParam=False):
@@ -121,5 +139,15 @@ class Generator:
             print(f"Max Out: {max_out}, Alpha: {alpha}, Beta: {beta}\n")
         return max_out, alpha, beta
             
-        
+
+    def checkResultPath(self):
+        if not os.path.exists(self.result_path):
+            os.makedirs(self.result_path)
+            print(f"Directory '{self.result_path}' created successfully.")
+        else:
+            print(f"Directory '{self.result_path}' already exists.")
+
+    def showSimInfo(self):
+        self.total_sims_required = len(self.set_alpha) * len(self.set_beta) * len(self.set_max_out) * self.maps_per_task        
+        print(f"Total Number of Simulation Required: {self.total_sims_required}")
 
