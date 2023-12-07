@@ -78,6 +78,7 @@ class MapGenerator:
 
     def plotTaskAndMap(self, task_graph, task_position,  lat_list=[]):
 
+        graph_path = 'ratatoskr/results/Graphs.png'
         rename_dict, new_pos = self.getRenameDict(task_position)
         self.map_graph = self.doGraphRemapping(task_graph, rename_dict)
          
@@ -95,7 +96,7 @@ class MapGenerator:
             text = 'Avg Flit Lat = ' + str(lat_list[0]) + ', Avg Packet Latency = ' + str(lat_list[1]) + ', Avg Network Lat = ' + str(lat_list[2])
             fig.text(0.2, 0.05, text, fontsize=12, color='red')
 
-        plt.savefig("Graphs.png", format="PNG")
+        plt.savefig(graph_path, format="PNG")
         plt.close(fig)
 
 

@@ -10,14 +10,15 @@ from utils.DAG_Generator import DAG
 from utils.Map_Generator import MapGenerator
 
 class Generator:
-    def __init__(self, result_path='', num_of_tasks=4, meshSize=4, maps_per_task=1,sim_count=0, runsim=False, randomDAG=True, allDAG=False):
+    def __init__(self, result_path='', num_of_tasks=4, mesh_size=4, maps_per_task=1,sim_count=0, runsim=False, random_dag=True, all_dag=False, save_results=False):
 
-        self.allDAG = allDAG
+        self.allDAG = all_dag
         self.runsim = runsim
-        self.randomDAG = randomDAG
-        self.network = str(meshSize)
+        self.randomDAG = random_dag
+        self.network = str(mesh_size)
         self.num_of_tasks = num_of_tasks 
         self.maps_per_task = maps_per_task
+        self.save_results = save_results
 
         self.result_path = result_path
         self.sim_path = 'ratatoskr/config/'
@@ -68,7 +69,7 @@ class Generator:
 
         if self.runsim:
             showSimOutput = not self.allDAG #Sim results not shown when allDAG is true
-            self.doSim(showSimOutput)
+            self.doSim()
             self.saveResults()
 
 
@@ -79,7 +80,8 @@ class Generator:
         command = "cd ratatoskr/ && ./sim"
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-        with open('sim_output.txt', 'w') as file:
+        sim_output_path = 'ratatoskr/results/sim_output.txt'
+        with open(sim_output_path, 'w') as file:
             for line in process.stdout:
                 if showSimOutput:
                     print(line, end=' ')
@@ -101,6 +103,7 @@ class Generator:
 
             self.latency_list = [avg_flit_lat, avg_packet_lat, avg_network_lat]
             self.mapper.plotTaskAndMap(self.task.task_graph, self.dag.position, self.latency_list)
+
 
     def saveResults(self):
         result = {}
@@ -125,8 +128,9 @@ class Generator:
         file_name = str(self.sim_count) + '.pickle'
         file_path = os.path.join(self.result_path,file_name)
 
-        with open(file_path, 'wb') as file:
-            pickle.dump(result, file)
+        if self.save_results:
+            with open(file_path, 'wb') as file:
+                pickle.dump(result, file)
 
         return 
 
