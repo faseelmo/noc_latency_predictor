@@ -10,11 +10,10 @@ from utils.DAG_Generator import DAG
 from utils.Map_Generator import MapGenerator
 
 class Generator:
-    def __init__(self, result_path='', num_of_tasks=4, mesh_size=4, maps_per_task=1,sim_count=0, runsim=False, random_dag=True, all_dag=False, save_results=False):
+    def __init__(self, result_path='', num_of_tasks=4, mesh_size=4, maps_per_task=1,sim_count=0, run_sim=False, all_dag=False, save_results=False):
 
         self.allDAG = all_dag
-        self.runsim = runsim
-        self.randomDAG = random_dag
+        self.runsim = run_sim
         self.network = str(mesh_size)
         self.num_of_tasks = num_of_tasks 
         self.maps_per_task = maps_per_task
@@ -41,7 +40,7 @@ class Generator:
         if self.allDAG:
             if result_path == '':
                 raise ValueError("If allDAG=True, must specify valid result_path argument")
-            self.showSimInfo()
+            self.showSimCount()
             self.checkResultPath()
             self.runAllSim()
 
@@ -151,7 +150,7 @@ class Generator:
         else:
             print(f"Directory '{self.result_path}' already exists.")
 
-    def showSimInfo(self):
+    def showSimCount(self):
         self.total_sims_required = len(self.set_alpha) * len(self.set_beta) * len(self.set_max_out) * self.maps_per_task        
         print(f"Total Number of Simulation Required: {self.total_sims_required}")
 
