@@ -9,10 +9,10 @@ cd training_data/
 ```
 python3 generate.py --tasks 5
 ```
-> The results can be seen in [training_data/ratatoskr/results](training_data/ratatoskr/results/).
+> The results can be seen in _training_data/ratatoskr/results_.
 
 2. If you want to generate multiple random possible combination of DAGs for a given number of tasks (say 4) and then do 50 random mapping per tasks, run the python script with the following arguments. 
 ```
 python3 generate.py --gen --tasks 4 --maps 50
 ```
-> The results can be seen in [training_data/data](training_data/data/).
+> The results can be seen in _training_data/data_.
