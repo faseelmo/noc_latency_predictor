@@ -15,6 +15,10 @@ class MapGenerator:
         self.map_graph = None
     
     def getPEfromNetwork(self):
+        """
+        Gets Lists of PEs from the self.network (str) 
+        Also copies appropriate network file from misc/ to config/ 
+        """
         network_file_path = 'ratatoskr/config/misc/networks/' 
         if self.network == "4":
             list_of_pe = list(range(16, 32, 1))

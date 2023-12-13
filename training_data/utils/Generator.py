@@ -10,15 +10,14 @@ from utils.DAG_Generator import DAG
 from utils.Map_Generator import MapGenerator
 
 class Generator:
-    def __init__(self, result_path='', num_of_tasks=4, mesh_size=4, maps_per_task=1,sim_count=0, run_sim=False, all_dag=False, save_results=False):
+    def __init__(self, result_path='', num_of_tasks=4, mesh_size=4, maps_per_task=1,sim_count=0, run_sim=True):
 
-        self.allDAG = all_dag
         self.runsim = run_sim
         self.network = str(mesh_size)
         self.num_of_tasks = num_of_tasks 
         self.maps_per_task = maps_per_task
-        self.save_results = save_results
-
+        self.demand_requirement = None
+# 
         self.result_path = result_path
         self.sim_path = 'ratatoskr/config/'
 
@@ -34,32 +33,62 @@ class Generator:
         self.mapper = None
         self.latency_list = []
         self.sim_time_string = ''
-        self.total_sims_required = 0
+        self.current_demand = None
+        self.save_dict_flag = False
+        self.total_sims_required = 1
         self.sim_successfull_flag = False
 
-        if self.allDAG:
-            if result_path == '':
-                raise ValueError("If allDAG=True, must specify valid result_path argument")
-            self.showSimCount()
-            self.checkResultPath()
-            self.runAllSim()
+    def generateAllDag(self):
+        if self.result_path == '':
+            raise ValueError("If allDAG=True, must specify valid result_path argument")
 
-    def runAllSim(self):
+        self.save_dict_flag = True
+        self.showSimCount()
+        self.checkResultPath()
+        self.generate_with_demand()
+
+    def runAllSim(self, demand=(False, False, False)):
+        print("Running All Sims\n\n")
         for max_out in self.set_max_out:
             for alpha in self.set_alpha:
                 for beta in self.set_beta:
-                    self.generate(max_out, alpha, beta) # Need to pass these arguments for DAG Generator
+                    self.generate(max_out, alpha, beta, demand) # Need to pass these arguments for DAG Generator
 
-    def generate(self, max_out, alpha, beta):
-        self.generateDAGandTask(max_out, alpha, beta) # arg for DAG Generator
+    def generate_with_demand(self):
+        """Need to Add a for loop here for different list of demands.
+            Low List, Medium List, High List
+        """
+        demand_all_none = all(element is None for element in self.demand_requirement)
+
+        if demand_all_none:
+            print("Without Sim Demand Requirement")
+            self.runAllSim()
+
+        if self.demand_requirement is not None:
+            print("With Demand Requirement")
+            demand_index = 0
+            for demand_iter in self.demand_requirement: # Iterating for each demand
+                if demand_iter != None:
+                    for i in range(demand_iter):
+                        self.current_demand = demand_index
+                        if demand_index == 0 : self.runAllSim(demand=(True, False, False))
+                        elif demand_index == 1 : self.runAllSim(demand=(False, True, False))
+                        elif demand_index == 2 : self.runAllSim(demand=(False, False, True))
+
+                demand_index += 1
+
+        
+    def generate(self, max_out, alpha, beta, demand=(False, False, False)):
+        self.generateDAGandTask(max_out, alpha, beta, demand) # arg for DAG Generator
         """Support for Multiple Random Mapping for a single Task"""
         self.map_count = 0
         for i in range(self.maps_per_task):
             self.map_count += 1
             self.singleRandomMappingAndSim()
 
-    def generateDAGandTask(self, max_out, alpha, beta):
-        self.dag = DAG(self.num_of_tasks, max_out, alpha, beta, withDemand=False, withDuration=False) #withDuration sim dosent work
+    def generateDAGandTask(self, max_out, alpha, beta, demand):
+        self.dag = DAG(self.num_of_tasks, max_out, alpha, beta, withDemand=True, 
+                       isLowDemand=demand[0], isMediumDemand=demand[1], isHighDemand=demand[2]) 
         self.task = TaskGenerator(self.dag, self.sim_path + 'data.xml')
     
     def singleRandomMappingAndSim(self):
@@ -67,7 +96,6 @@ class Generator:
         self.mapper.plotTaskAndMap(self.task.task_graph, self.dag.position)
 
         if self.runsim:
-            showSimOutput = not self.allDAG #Sim results not shown when allDAG is true
             self.doSim()
             self.saveResults()
 
@@ -119,17 +147,21 @@ class Generator:
         result['avg_flit_lat'] = self.latency_list[0]
         result['avg_packet_lat'] = self.latency_list[1]
         result['avg_network_lat'] = self.latency_list[2]
+        result['demand_level'] = self.current_demand
 
         self.sim_count += 1
 
-        print(f"[{self.sim_count}/{self.total_sims_required}]Task_Num: {result['task_num']}, Map_Count: {self.map_count}, Sim_Successful: {self.sim_successfull_flag}, Sim_Time: {self.sim_time_string} ")
+        print(f"[{self.sim_count}/{self.total_sims_required}] Demand_Level: {self.current_demand}, Task_Param: {(self.dag.max_out, self.dag.alpha,self.dag.beta)}, Map_Count: {self.map_count}, Sim_Successful: {self.sim_successfull_flag}, Latency:{self.latency_list[1]} , Sim_Time: {self.sim_time_string} ")
+
+        if not self.save_dict_flag:
+            print("Not Saving Results")
+            return
 
         file_name = str(self.sim_count) + '.pickle'
         file_path = os.path.join(self.result_path,file_name)
 
-        if self.save_results:
-            with open(file_path, 'wb') as file:
-                pickle.dump(result, file)
+        with open(file_path, 'wb') as file:
+            pickle.dump(result, file)
 
         return 
 
@@ -151,6 +183,11 @@ class Generator:
             print(f"Directory '{self.result_path}' already exists.")
 
     def showSimCount(self):
-        self.total_sims_required = len(self.set_alpha) * len(self.set_beta) * len(self.set_max_out) * self.maps_per_task        
+        total_param_count = len(self.set_alpha) * len(self.set_beta) * len(self.set_max_out) * self.maps_per_task
+        total_demand = (self.demand_requirement[0] or 0) + (self.demand_requirement[1] or 0) + (self.demand_requirement[2] or 0)
+
+        if total_demand == 0: total_demand = 1
+        self.total_sims_required = total_param_count * total_demand        
+
         print(f"Total Number of Simulation Required: {self.total_sims_required}")
 

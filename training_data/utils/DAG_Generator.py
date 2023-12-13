@@ -8,7 +8,7 @@ import networkx as nx
 import sys
 
 class DAG:
-    def __init__(self, nodes, max_out = 3, alpha = 1.0, beta = 1.0, withDemand=False , withDuration=False):
+    def __init__(self, nodes, max_out = 3, alpha = 1.0, beta = 1.0, withDemand=False,  isLowDemand=False, isMediumDemand=False, isHighDemand=False, withDuration=False):
         self.nodes = nodes 
         self.max_out = max_out 
         self.alpha = alpha  
@@ -18,7 +18,37 @@ class DAG:
         self.withDuration = withDuration
         self.demand = []
         self.position = {'Start':(0,4),'Exit':(10,4)}
+
+        if withDemand:
+            self.getValidDemand(isLowDemand, isMediumDemand, isHighDemand)
+
         self.generator()
+
+    
+    def getValidDemand(self, isLowDemand, isMediumDemand, isHighDemand):
+        
+        all_demand_true = (isLowDemand and isMediumDemand and isHighDemand)
+
+        #Condition to check if only one boolean is true. ^ -> XOR
+        if (isLowDemand ^ isMediumDemand ^ isHighDemand) and not all_demand_true:
+            if isLowDemand:
+                start_number, end_number = 1, 100
+            elif isMediumDemand:
+                start_number, end_number = 100, 500
+            elif isHighDemand:
+                start_number, end_number = 500, 2000
+
+        elif not all_demand_true: # Condition where no demand criteria is mentioned
+            start_number, end_number = 1, 30
+        else: 
+            raise Exception("Multiple Demands True.")
+
+        self.demand_range = (start_number, end_number)
+
+
+    def getRandomDemand(self, low_num, high_num):
+        return random.uniform(low_num, high_num)
+
 
     def generator(self):
         '''Randomly generates a DAG task and randomly assigns its duration and (CPU, Memory) requirements'''
@@ -43,16 +73,17 @@ class DAG:
         for i in range(len(self.into_degree)):
             if self.withDemand:
                 if random.random() < 0.5:
-                    cpu_demand = random.uniform(0.25 * r, 0.5 * r)
+                    cpu_demand = random.uniform(self.demand_range[0], self.demand_range[1])
                     mem_demand = random.uniform(0.05 * r, 0.01 * r)
                     self.demand.append((cpu_demand, mem_demand))
                 else:
-                    cpu_demand = random.uniform(0.05 * r, 0.01 * r)
+                    cpu_demand = random.uniform(self.demand_range[0], self.demand_range[1])
                     mem_demand = random.uniform(0.25 * r, 0.5 * r)
                     self.demand.append((cpu_demand, mem_demand))
             else: 
                 self.demand.append((1, 1))
 
+    
     def DAGs_generate(self):
 
         n = self.nodes 

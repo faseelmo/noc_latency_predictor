@@ -18,7 +18,7 @@ class TaskGenerator:
         self.addTasks()
 
         if dag.withDemand:
-            print("Matching Require and Demand")
+            # print("Matching Require and Demand")
             self.matchRequireDemand()
 
         self.task_graph = dag.getGraph()
