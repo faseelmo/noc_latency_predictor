@@ -139,7 +139,9 @@ class Generator:
         result["beta"] = self.dag.beta
         result['network'] = self.network
         result["task_graph"] = self.task.task_graph
+        result["task_graph_pos"] = self.dag.position
         result["map_graph"] = self.mapper.map_graph
+        result["map_graph"] = self.mapper.position
         result["demand"] = self.task.demand
         result["duration"] = self.task.duration
         result["task_num"] = self.task.num_of_tasks

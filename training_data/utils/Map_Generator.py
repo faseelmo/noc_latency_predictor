@@ -13,6 +13,7 @@ class MapGenerator:
         self.map = self.doMap()
         self.createMapFile(file_location)
         self.map_graph = None
+        self.position = None
     
     def getPEfromNetwork(self):
         """
@@ -85,7 +86,8 @@ class MapGenerator:
         graph_path = 'ratatoskr/results/Graphs.png'
         rename_dict, new_pos = self.getRenameDict(task_position)
         self.map_graph = self.doGraphRemapping(task_graph, rename_dict)
-         
+
+        self.position = new_pos 
 
         fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
 
