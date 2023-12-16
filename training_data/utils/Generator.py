@@ -183,6 +183,7 @@ class Generator:
             print(f"Directory '{self.result_path}' created successfully.")
         else:
             print(f"Directory '{self.result_path}' already exists.")
+            input("Press Enter to Proceed ")
 
     def showSimCount(self):
         total_param_count = len(self.set_alpha) * len(self.set_beta) * len(self.set_max_out) * self.maps_per_task

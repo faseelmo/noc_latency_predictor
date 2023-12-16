@@ -34,9 +34,9 @@ class DAG:
             if isLowDemand:
                 start_number, end_number = 1, 100
             elif isMediumDemand:
-                start_number, end_number = 100, 500
+                start_number, end_number = 100, 1000
             elif isHighDemand:
-                start_number, end_number = 500, 2000
+                start_number, end_number = 1000, 3000
 
         elif not all_demand_true: # Condition where no demand criteria is mentioned
             start_number, end_number = 1, 30
@@ -47,7 +47,8 @@ class DAG:
 
 
     def getRandomDemand(self, low_num, high_num):
-        return random.uniform(low_num, high_num)
+        mu = low_num + ((high_num - low_num) / 2 )
+        return abs(np.random.normal(mu, mu/4))
 
 
     def generator(self):

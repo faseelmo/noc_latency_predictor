@@ -15,9 +15,10 @@ all_gen = args.gen
 tasks = args.tasksNum
 maps = args.mapsPerTask
 user_demand_requirement = (args.lowDemandCount, args.medDemandCount, args.highDemandCount)
+result_path = 'data/task_' + str(tasks)
 
 if all_gen:
-    data_generator = Generator(result_path='data/task_5', num_of_tasks=tasks, maps_per_task=maps)
+    data_generator = Generator(result_path=result_path, num_of_tasks=tasks, maps_per_task=maps)
     data_generator.demand_requirement = user_demand_requirement 
     data_generator.generateAllDag()
 else: 
