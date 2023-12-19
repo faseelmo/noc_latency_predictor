@@ -17,7 +17,7 @@ class Generator:
         self.num_of_tasks = num_of_tasks 
         self.maps_per_task = maps_per_task
         self.demand_requirement = None
-# 
+ 
         self.result_path = result_path
         self.sim_path = 'ratatoskr/config/'
 
@@ -119,17 +119,17 @@ class Generator:
                     start_index = line.index(':')
                     self.sim_time_string = line[start_index+2:]
 
-        if self.sim_successfull_flag:
+        # if self.sim_successfull_flag:
             # print("\n----Sim Successfull----")
-            result = pd.read_csv('ratatoskr/results/report_Performance.csv', header=None)
-            result_values = result.values.tolist()
+        result = pd.read_csv('ratatoskr/results/report_Performance.csv', header=None)
+        result_values = result.values.tolist()
 
-            avg_flit_lat = result_values[0][1]
-            avg_packet_lat = result_values[1][1]
-            avg_network_lat = result_values[2][1]
+        avg_flit_lat = result_values[0][1]
+        avg_packet_lat = result_values[1][1]
+        avg_network_lat = result_values[2][1]
 
-            self.latency_list = [avg_flit_lat, avg_packet_lat, avg_network_lat]
-            self.mapper.plotTaskAndMap(self.task.task_graph, self.dag.position, self.latency_list)
+        self.latency_list = [avg_flit_lat, avg_packet_lat, avg_network_lat]
+        self.mapper.plotTaskAndMap(self.task.task_graph, self.dag.position, self.latency_list)
 
 
     def saveResults(self):
@@ -141,7 +141,7 @@ class Generator:
         result["task_graph"] = self.task.task_graph
         result["task_graph_pos"] = self.dag.position
         result["map_graph"] = self.mapper.map_graph
-        result["map_graph"] = self.mapper.position
+        result["map_graph_pos"] = self.mapper.position
         result["demand"] = self.task.demand
         result["duration"] = self.task.duration
         result["task_num"] = self.task.num_of_tasks
