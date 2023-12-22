@@ -12,6 +12,8 @@ parser.add_argument('--highDemandCount', type=int, default=None, help='Number of
 
 args = parser.parse_args()
 
+NETWORK_SIZE = 3
+
 all_gen = args.gen
 tasks = args.tasksNum
 maps = args.mapsPerTask
@@ -19,7 +21,6 @@ sim_count = args.simCount
 user_demand_requirement = (args.lowDemandCount, args.medDemandCount, args.highDemandCount)
 result_path = 'data/task_' + str(tasks)
 
-NETWORK_SIZE = 3
 data_generator = Generator(num_of_tasks=tasks, maps_per_task=maps, mesh_size=NETWORK_SIZE,
                            result_path=result_path, sim_count=sim_count)
 

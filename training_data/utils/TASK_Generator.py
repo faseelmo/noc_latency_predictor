@@ -5,6 +5,12 @@ import sys
 
 class TaskGenerator:
     def __init__(self, dag, output_file):
+        """
+        How do assigning demand work? 
+        we put value for count first (when creating require), 
+        and then later on we match those counts with Generate
+        During the matching process, processing delay is assigned to in between nodes
+        """
         self.nodes = dag.nodes
         self.edges = dag.edges
         self.duration = dag.duration
@@ -99,7 +105,7 @@ class TaskGenerator:
             destination_id += 1
 
     def createRequire(self, task_node, edges, demand=1, firstRequire=True, requirement_id = 0):
-        """Header for Generate"""
+        """Header for Require"""
         if firstRequire:
             requires_node = self.xml_gen.addChild(task_node, 'requires')
         else: 
@@ -114,7 +120,7 @@ class TaskGenerator:
     def createRequireAndGenerate(self, task_parent):
         for i in range(self.nodes):
             duration = self.duration[i]
-            task_node = self.createTaskHeader(task_parent, duration=duration) #remove duration arg if required 
+            task_node = self.createTaskHeader(task_parent) #remove duration arg if required 
             node = i+1
             node_edges = self.getNodeInfoFromEdges(node)
             start_edges, node_edges, exit_edges = self.organizeEdges(node_edges)
@@ -171,19 +177,29 @@ class TaskGenerator:
     def matchRequireDemand(self):
         root = self.root 
         all_tasks = root.findall('.//tasks/task')
+        print(f"Number of task {len(all_tasks)}")
+
         for task in all_tasks:
             current_task_id = task.attrib['id']
+
             for requirement in task.findall('requires/requirement'):
                 require_count = requirement.find('count').attrib['min']
                 source_id = requirement.find('source').attrib['value']
-                self.changeGenerateCount(source_id, current_task_id, require_count )
+                self.changeGenerateCount(source_id, current_task_id, require_count)
 
 
     def changeGenerateCount(self, source_id, destination_id, new_count):
         root = self.root 
         all_tasks = root.findall('.//tasks/task')
 
-        for task in all_tasks:
+        for index, task in enumerate(all_tasks):
+            
+            """Condition to Assign Processing delay to only nodes in between"""
+            if (index != 0) and (index < (len(all_tasks) - 2)): 
+                generate_delay = math.ceil(self.duration[index])
+            else: 
+                generate_delay = 0
+
             if task.attrib['id'] == source_id:
                 destinations = task.findall('generates/possibility/destinations/destination')
                 for destination in destinations:
@@ -191,3 +207,6 @@ class TaskGenerator:
                     if task_id == destination_id:
                         destination.find('count').attrib['min'] = str(new_count)
                         destination.find('count').attrib['max'] = str(new_count)
+
+                        destination.find('delay').attrib['min'] = str(generate_delay)
+                        destination.find('delay').attrib['max'] = str(generate_delay)

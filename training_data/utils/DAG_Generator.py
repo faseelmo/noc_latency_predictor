@@ -32,11 +32,11 @@ class DAG:
         #Condition to check if only one boolean is true. ^ -> XOR
         if (isLowDemand ^ isMediumDemand ^ isHighDemand) and not all_demand_true:
             if isLowDemand:
-                start_number, end_number = 1, 10000
+                start_number, end_number = 1, 100
             elif isMediumDemand:
-                start_number, end_number = 10000, 1000000
+                start_number, end_number = 100, 300
             elif isHighDemand:
-                start_number, end_number = 1000000, 10000000
+                start_number, end_number = 300, 500
 
         elif not all_demand_true: # Condition where no demand criteria is mentioned
             start_number, end_number = 1, 30
@@ -62,11 +62,14 @@ class DAG:
         for i in range(len(self.into_degree)):
             if self.withDuration:
                 if random.random() < prob:
+                    # this condition is always true
                     # duration.append(random.uniform(t,3*t))
-                    self.duration.append(random.sample(range(0, 3 * t), 1)[0])
+                    # self.duration.append(random.sample(range(0, 3 * t), 1)[0])
+                    self.duration.append(random.uniform(self.demand_range[0], self.demand_range[1]))
                 else:
                     # duration.append(random.uniform(5*t,10*t))
-                    self.duration.append(random.sample(range(5 * t, 10 * t), 1)[0])
+                    # self.duration.append(random.sample(range(5 * t, 10 * t), 1)[0])
+                    self.durationa.append(random.uniform(self.demand_range[0], self.demand_range[1]))
             else: 
                 self.duration.append(-1)
 

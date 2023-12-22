@@ -3,7 +3,7 @@ import subprocess
 import pandas as pd
 import os
 import pickle
-
+import sys
 
 from utils.TASK_Generator import TaskGenerator
 from utils.DAG_Generator import DAG
@@ -38,6 +38,7 @@ class Generator:
         self.save_dict_flag = False
         self.total_sims_required = 1
         self.sim_successfull_flag = False
+        self.totat_processing_time = None
 
     def generateAllDag(self):
         if self.result_path == '':
@@ -88,9 +89,10 @@ class Generator:
             self.singleRandomMappingAndSim()
 
     def generateDAGandTask(self, max_out, alpha, beta, demand):
-        self.dag = DAG(self.num_of_tasks, max_out, alpha, beta, withDemand=True, 
+        self.dag = DAG(self.num_of_tasks, max_out, alpha, beta, withDemand=True, withDuration=True, 
                        isLowDemand=demand[0], isMediumDemand=demand[1], isHighDemand=demand[2]) 
         self.task = TaskGenerator(self.dag, self.sim_path + 'data.xml')
+
     
     def singleRandomMappingAndSim(self):
         self.mapper= MapGenerator(self.task.num_of_tasks, self.network, self.sim_path + 'map.xml' )
@@ -108,17 +110,25 @@ class Generator:
         command = "cd ratatoskr/ && ./sim"
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-        sim_output_path = 'ratatoskr/results/sim_output.txt'
-        with open(sim_output_path, 'w') as file:
-            for line in process.stdout:
-                if showSimOutput:
-                    print(line, end=' ')
-                file.write(line + ' ')
-                if successfull_string in line:
-                    self.sim_successfull_flag = True
-                if 'Execution time' in line: 
-                    start_index = line.index(':')
-                    self.sim_time_string = line[start_index+2:]
+        """
+        sim_output_path is huuuuuge. 
+        so commented out 
+        # sim_output_path = 'ratatoskr/results/sim_output.txt'
+        # with open(sim_output_path, 'w') as file:
+        """
+        
+        processing_time_string = 'Node' + str(last_node) 
+        for line in process.stdout:
+            if showSimOutput:
+                print(line, end=' ')
+            # file.write(line + ' ')
+            if successfull_string in line:
+                self.sim_successfull_flag = True
+            if processing_time_string in line and 'Receive Flit' in line: 
+                self.totat_processing_time = line.split()[0][:-3]
+            if 'Execution time' in line: 
+                start_index = line.index(':')
+                self.sim_time_string = line[start_index+2:]
 
         # if self.sim_successfull_flag:
             # print("\n----Sim Successfull----")
@@ -154,7 +164,7 @@ class Generator:
 
         self.sim_count += 1
 
-        print(f"[{self.sim_count}/{self.total_sims_required}] Demand_Level: {self.current_demand}, Task_Param: {(self.dag.max_out, self.dag.alpha,self.dag.beta)}, Map_Count: {self.map_count}, Sim_Successful: {self.sim_successfull_flag}, Latency:{self.latency_list[1]} , Sim_Time: {self.sim_time_string} ")
+        print(f"[{self.sim_count}/{self.total_sims_required}] Demand_Level: {self.current_demand}, Task_Param: {(self.dag.max_out, self.dag.alpha,self.dag.beta)}, Map_Count: {self.map_count}, Sim_Successful: {self.sim_successfull_flag}, Processing Time:{self.totat_processing_time} , Sim_Time: {self.sim_time_string} ")
 
         if not self.save_dict_flag:
             print("Not Saving Results")
