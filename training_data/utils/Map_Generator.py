@@ -27,8 +27,14 @@ class MapGenerator:
         elif self.network == "2":
             list_of_pe = list(range(4, 8, 1))
             network_file_name = '2x2_Mesh.xml' 
+        elif self.network == "3":
+            list_of_pe = list(range(9, 18, 1))
+            network_file_name = '3x3_Mesh.xml' 
         else: 
             print("[Warning] Not a Valid Network Choice")
+            list_of_pe = []
+
+        assert len(list_of_pe) >= self.num_of_tasks, "Number of Tasks greater than available PEs in Network" 
 
         network_config_path = 'ratatoskr/config/'
         shutil.copy(network_file_path + network_file_name, network_config_path + network_file_name)
@@ -38,6 +44,7 @@ class MapGenerator:
 
     def doMap(self):
         list_of_pe = self.getPEfromNetwork()
+        
         map_ = [] # List of Tuples (task, corresponding_p.e)
         for i in range(self.num_of_tasks):
             choosen_pe = random.choice(list_of_pe)

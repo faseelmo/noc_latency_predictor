@@ -57,7 +57,7 @@
             <destination id="0">
               <delay min="0" max="0"/>
               <interval min="0" max="0"/>
-              <count min="10" max="10"/>
+              <count min="1000" max="1000"/>
               <type value="0"/>
               <task value="3"/>
             </destination>
@@ -83,7 +83,7 @@
             <destination id="0">
               <delay min="0" max="0"/>
               <interval min="0" max="0"/>
-              <count min="10" max="10"/>
+              <count min="1000" max="1000"/>
               <type value="0"/>
               <task value="5"/>
             </destination>
@@ -99,7 +99,7 @@
         <requirement id="0">
           <type value="0"/>
           <source value="1"/>
-          <count min="10" max="10"/>
+          <count min="1000" max="1000"/>
         </requirement>
       </requires>
       <generates>
@@ -109,7 +109,7 @@
             <destination id="0">
               <delay min="0" max="0"/>
               <interval min="0" max="0"/>
-              <count min="10" max="10"/>
+              <count min="1000" max="1000"/>
               <type value="0"/>
               <task value="5"/>
             </destination>
@@ -135,7 +135,7 @@
             <destination id="0">
               <delay min="0" max="0"/>
               <interval min="0" max="0"/>
-              <count min="10" max="10"/>
+              <count min="1000" max="1000"/>
               <type value="0"/>
               <task value="6"/>
             </destination>
@@ -151,12 +151,12 @@
         <requirement id="0">
           <type value="0"/>
           <source value="2"/>
-          <count min="10" max="10"/>
+          <count min="1000" max="1000"/>
         </requirement>
         <requirement id="1">
           <type value="0"/>
           <source value="3"/>
-          <count min="10" max="10"/>
+          <count min="1000" max="1000"/>
         </requirement>
       </requires>
       <generates>
@@ -166,7 +166,7 @@
             <destination id="0">
               <delay min="0" max="0"/>
               <interval min="0" max="0"/>
-              <count min="10" max="10"/>
+              <count min="1000" max="1000"/>
               <type value="0"/>
               <task value="6"/>
             </destination>
@@ -182,12 +182,12 @@
         <requirement id="0">
           <type value="0"/>
           <source value="4"/>
-          <count min="10" max="10"/>
+          <count min="1000" max="1000"/>
         </requirement>
         <requirement id="1">
           <type value="0"/>
           <source value="5"/>
-          <count min="10" max="10"/>
+          <count min="1000" max="1000"/>
         </requirement>
       </requires>
       <generates>
@@ -197,7 +197,7 @@
             <destination id="0">
               <delay min="0" max="0"/>
               <interval min="0" max="0"/>
-              <count min="10" max="10"/>
+              <count min="1000" max="1000"/>
               <type value="0"/>
               <task value="7"/>
             </destination>
@@ -213,7 +213,7 @@
         <requirement id="0">
           <type value="0"/>
           <source value="6"/>
-          <count min="10" max="10"/>
+          <count min="1000" max="1000"/>
         </requirement>
       </requires>
       <generates>

@@ -21,7 +21,8 @@ class Generator:
         self.result_path = result_path
         self.sim_path = 'ratatoskr/config/'
 
-        self.set_max_out = [1,2,3,4,5]      #max out_degree of one node
+        self.set_max_out = [1,2,3,4,5]    #max out_degree of one node
+        # self.set_max_out = [4,5]            #max out_degree of one node
         self.set_alpha = [0.5,1.0,1.5]      #DAG shape
         self.set_beta = [0.0,0.5,1.0,2.0]   #DAG regularity
         

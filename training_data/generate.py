@@ -4,6 +4,7 @@ from utils.Generator import Generator
 parser = argparse.ArgumentParser(description='Generate a random task that can be mapped to a NoC and estimate then save latency results')
 parser.add_argument('--gen', action='store_true', help='Generate all combinations of data')
 parser.add_argument('--tasksNum', type=int, default=4, help='Number of tasks')
+parser.add_argument('--simCount', type=int, default=0, help='saving results starts from this arg')
 parser.add_argument('--mapsPerTask', type=int, default=1, help='Number of mapping done per task')
 parser.add_argument('--lowDemandCount', type=int, default=None, help='Number of Iteration for Low Demand')
 parser.add_argument('--medDemandCount', type=int, default=None, help='Number of Iteration for Medium Demand')
@@ -14,15 +15,18 @@ args = parser.parse_args()
 all_gen = args.gen
 tasks = args.tasksNum
 maps = args.mapsPerTask
+sim_count = args.simCount
 user_demand_requirement = (args.lowDemandCount, args.medDemandCount, args.highDemandCount)
 result_path = 'data/task_' + str(tasks)
 
+NETWORK_SIZE = 3
+data_generator = Generator(num_of_tasks=tasks, maps_per_task=maps, mesh_size=NETWORK_SIZE,
+                           result_path=result_path, sim_count=sim_count)
+
 if all_gen:
-    data_generator = Generator(result_path=result_path, num_of_tasks=tasks, maps_per_task=maps)
     data_generator.demand_requirement = user_demand_requirement 
     data_generator.generateAllDag()
 else: 
-    data_generator = Generator(num_of_tasks=tasks)
     max_out, alpha, beta = data_generator.getRandomDAGParameters(True)
     data_generator.generate(max_out, alpha, beta)
 
