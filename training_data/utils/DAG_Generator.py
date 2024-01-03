@@ -23,6 +23,7 @@ class DAG:
             self.getValidDemand(isLowDemand, isMediumDemand, isHighDemand)
 
         self.generator()
+        print(self.duration)
 
     
     def getValidDemand(self, isLowDemand, isMediumDemand, isHighDemand):
@@ -69,7 +70,7 @@ class DAG:
                 else:
                     # duration.append(random.uniform(5*t,10*t))
                     # self.duration.append(random.sample(range(5 * t, 10 * t), 1)[0])
-                    self.durationa.append(random.uniform(self.demand_range[0], self.demand_range[1]))
+                    self.duration.append(random.uniform(self.demand_range[0], self.demand_range[1]))
             else: 
                 self.duration.append(-1)
 

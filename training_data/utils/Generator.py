@@ -161,6 +161,7 @@ class Generator:
         result['avg_packet_lat'] = self.latency_list[1]
         result['avg_network_lat'] = self.latency_list[2]
         result['demand_level'] = self.current_demand
+        result['processing_time'] = float(self.totat_processing_time)
 
         self.sim_count += 1
 
