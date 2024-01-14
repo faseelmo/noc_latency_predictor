@@ -1,0 +1,128 @@
+import os
+import pickle
+from natsort import natsorted
+
+import utils
+
+import torch 
+from torch.utils.data import Dataset
+
+from torch_geometric.data import Data
+from torch_geometric.nn import GCNConv
+
+class CustomData(Dataset): 
+    def __init__(self, pickle_dir): 
+        entries = os.listdir(pickle_dir)
+        self.data_dir = pickle_dir
+        self.file_list = natsorted([entry for entry in entries if os.path.isfile(os.path.join(pickle_dir, entry))])
+
+    def __len__(self):
+        return len(self.file_list)
+
+    def __getitem__(self, idx):
+        file_path = os.path.join(self.data_dir, self.file_list[idx]) 
+        with open(file_path, 'rb') as file:
+            data_dict = pickle.load(file)
+
+        task_graph = data_dict['task_graph']
+        map_graph = data_dict['map_graph']
+        task_duration = data_dict['duration']
+        task_processing_time = data_dict['processing_time']
+
+        """
+        Selecting the CPU demand from (CPU,Memory)
+        """
+        task_demands = [demands[0] for demands in data_dict['demand']]
+
+        """
+        Syncing Demand and Duration order to their respective Nodes
+        """
+        task_node_list = list(task_graph.nodes)       
+        # new_demand = [0] * len(task_node_list)
+        # new_duration = [0] * len(task_node_list)
+
+        # for idx, task in enumerate(task_node_list):
+        #     if not isinstance(task, str): 
+        #         new_demand[idx] = task_demands[task-1]
+        #         new_duration[idx] = task_duration[task-1]
+
+        map_node_list = list(map_graph.nodes)       
+        task_edge_list = list(task_graph.edges)
+        map_edge_list = list(map_graph.edges)       
+
+        task_demands.insert(0,0)
+        task_demands.append(0)
+
+        task_duration.insert(0,0)
+        task_duration.append(0)
+
+
+        node_mapping = {}
+        """
+            node_mapping={mapped_node: task_node, .... }
+        """
+        for task_index, map_index in zip(task_node_list, map_node_list):
+            if task_index == 'Start': 
+                node_mapping[map_index] = 0
+            elif task_index == 'Exit': 
+                node_mapping[map_index] = len(task_node_list) - 1
+            else: 
+                node_mapping[map_index] = task_index
+
+
+        """
+        Edge Index is for PyG
+            map_edge_list = [(src_node, dest_node), ...]
+            edge[0] -> src_node
+            edge[1] -> dest_node
+        """
+        edge_index = torch.tensor([
+            (node_mapping[edge[0]], node_mapping[edge[1]]) for edge in map_edge_list]
+        ).t().contiguous()
+
+        print(edge_index)
+
+        """Node Level Features"""
+        # pe = torch.tensor(task_node_list).view(-1,1).float()
+        demand_feature = torch.tensor(task_demands).view(-1,1).float()
+        duration_feature = torch.tensor(task_duration).view(-1,1).float()
+        x = torch.cat([demand_feature, duration_feature], dim=1)
+        # print()
+
+        """Edge Level Features"""
+        distance_list = []
+        for edge in map_edge_list:
+            src_node = edge[0]
+            dest_node = edge[1]
+
+            src_node_loc = utils.net_3x3[src_node]
+            dest_node_loc = utils.net_3x3[dest_node]
+
+            distance = utils.manhattan_distance(src_node_loc, dest_node_loc)
+            distance_list.append(distance)
+
+        edge_attr = torch.tensor(distance_list).view(-1,1).float()
+
+        """Target Label"""
+        target_label = torch.tensor([task_processing_time]).float()
+
+        data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=target_label)
+        return data
+
+def test():
+    pickle_dir = '../training_data/data/task_7'
+    dataset = CustomData(pickle_dir)
+    print(f"Dataset size {len(dataset)}")
+    data = dataset[1000]
+    print(data)
+
+    print(f"\nInput Feature is \n{data.x}")
+    print(f"\nEdge Feature is \n{data.edge_attr}")
+    print(f"\nOuput Label {data.y}")
+
+    print(f"Nodes {data.node_attrs}")
+
+    utils.visualize_pyG(data)
+
+
+test()
