@@ -87,7 +87,7 @@ class CustomData(Dataset):
 
         data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=target_label)
         
-        """Un comment for debug"""
+        """un-comment for debug"""
         # new_pos = utils.convertTaskPosToPygPos(data_dict['task_graph_pos'])
         # utils.visGraph(task_graph, pos=data_dict['task_graph_pos'])
         # utils.visGraph(map_graph, pos=data_dict['map_graph_pos'])
