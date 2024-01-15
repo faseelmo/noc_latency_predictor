@@ -45,19 +45,20 @@ def visGraphGrid(edges, network_grid):
     plt.show()
 
 
-def visualize_pyG(data):
+def visualize_pyG(data, pos=None):
     graph = nx.Graph()
     graph.add_nodes_from(range(data.num_nodes))
     graph.add_edges_from(data.edge_index.t().tolist())
 
-    pos = nx.spring_layout(graph)  
+    if pos is None: pos = nx.spring_layout(graph)  
+
     node_features = {node: f"R: {data['x'][node].tolist()[0]:.0f}\nD: {data['x'][node].tolist()[1]:.0f}" for node in graph.nodes}
-    nx.draw(graph, pos, with_labels=True, labels=node_features, node_size=700)  
+    nx.draw(graph, pos, with_labels=True, labels=node_features, node_size=700, node_color='skyblue', font_size=10, font_color='black', font_weight='bold', arrowsize=20)  
 
     if 'edge_attr' in data:
         edge_labels = {tuple(e): str(int(attr.item())) for e, attr in zip(data.edge_index.t().tolist(), data.edge_attr)}
         nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
-        nx.draw(graph, pos, edgelist=data.edge_index.t().tolist())
+        nx.draw(graph, pos,node_color='skyblue' , edgelist=data.edge_index.t().tolist())
     plt.show()
 
 
@@ -66,3 +67,17 @@ def manhattan_distance(src,dst):
     x1, y1 = src
     x2, y2 = dst
     return abs(x2 - x1) + abs(y2 - y1)
+
+def convertTaskPosToPygPos(task_pos):
+    data_pyg_pos = {}
+    print(f"task_pos is {task_pos}")
+    print(f"task_pos type is {type(task_pos)}")
+    for key,value in task_pos.items():
+        if key == 'Start': 
+            data_pyg_pos[0] = value
+        elif key == 'Exit': 
+            data_pyg_pos[len(task_pos) - 1] = value
+        else: 
+            data_pyg_pos[key] = value
+    print(f"New Pos is {data_pyg_pos}")
+    return data_pyg_pos
