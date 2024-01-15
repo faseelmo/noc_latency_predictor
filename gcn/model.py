@@ -5,12 +5,14 @@ from torch_geometric.nn import GCNConv
 
 """
 Architecture: 
-    Tuple: ('Type of Conv', output_channel)
+    Tuple: (Type of Layer, Num of Output Channels)
 """
+
+torch.manual_seed(1)
 
 ARCHITECTURE = [
     ('Conv', 2),
-    ('Conv', 1),
+    ('Conv', 3),
     ('Linear', 4), 
     ('Linear', 1), 
 ]
@@ -22,8 +24,7 @@ class ConvBlock(nn.Module):
         self.leakyrelu = nn.LeakyReLU(0.1)
         self.batchnorm = nn.BatchNorm1d(out_channels)
 
-    def forward(self, data):
-        x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
+    def forward(self, x, edge_index, edge_attr):
         conv = self.conv(x, edge_index, edge_attr)
         return self.batchnorm(self.leakyrelu(conv))
 
@@ -38,29 +39,43 @@ class FCN(nn.Module):
         return self.leakyrelu(self.linear(x))
 
 class LatNet(nn.Module):
-    def __init__(self, in_features):
+    def __init__(self, in_features, num_nodes):
         super(LatNet, self).__init__()
         self.in_features = in_features
+        self.num_nodes = num_nodes
         self.architecture = ARCHITECTURE
-        self.layers = self._create_conv_layers(self.architecture)
+        self.layers = self._create_layers(self.architecture)
 
-    def forward(self, x): 
-        print(f"layers is {self.layers}")
-        x = self.layers(x)
+    def forward(self, data): 
+        x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
+        for layer in self.layers:
+            if isinstance(layer, ConvBlock):
+                x = layer(x, edge_index, edge_attr)
+
+            if isinstance(layer, FCN):
+                x = layer(x.view(-1))
+
         return x
 
-    def _create_conv_layers(self, architecture):
+    def _create_layers(self, architecture):
         layers = []
         in_channels = self.in_features
+        first_fcn_flag = True
 
         for module in architecture:
             block, out_channels = module
-            print(f"Module is {module}")
+
             if block == 'Conv':
-                print(f"Block is Conv")
                 layers.append(ConvBlock(in_channels, out_channels))
                 in_channels = out_channels
 
+            if block == 'Linear':
+                if first_fcn_flag:
+                    in_channels = self.num_nodes*in_channels
+                    first_fcn_flag = False
+
+                layers.append(FCN(in_channels, out_channels))
+                in_channels = out_channels
 
         return nn.Sequential(*layers)
 
@@ -70,18 +85,18 @@ def test():
     edge_index = torch.tensor([[0, 1, 1, 2],
                                [1, 0, 2, 1]], dtype=torch.long)
     
-    x = torch.tensor([[-1, 2, 3], [0, 1, -1], [1, -2, 0]], dtype=torch.float)
+    x = torch.tensor([[-1, 2, 3, 1, 1, 1, 1, 1], [-1, 2, 3, 1, 1, 1, 1, 1], [-1, 2, 3, 1, 1, 1, 1, 1]], dtype=torch.float)
 
-    edge_attr = torch.randn((edge_index.size(1), 3), dtype=torch.float)
+    """Edge Attr should only contain +ve values"""
+    edge_attr = torch.randn((edge_index.size(1), 1), dtype=torch.float)
 
-    test_data = Data(x=x, edge_index=edge_index)
+    test_data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
 
-    test_conv_block = ConvBlock(3, 10)
+    test_conv_block = ConvBlock(8, 5)
     output_conv_block = test_conv_block(
-        test_data
+        test_data.x, test_data.edge_index, test_data.edge_attr
     )
 
-    print(f"Edge Index is {edge_index.t()}")
     print(f"Conv Block Output is {output_conv_block}")
 
     print("\n---- Testing FCN----")
@@ -91,9 +106,10 @@ def test():
 
 
     print("\n---- Testing the final Model----")
-    latency_estimator = LatNet(3)
+    latency_estimator = LatNet(8, 3)
     print(latency_estimator(test_data))
 
+    print(f"\n\n{latency_estimator}")
 
 
 test()
