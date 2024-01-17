@@ -3,6 +3,8 @@ import torch.nn as nn
 from torch_geometric.data import Data
 from torch_geometric.nn import GCNConv
 
+from dataset import load_data
+
 """
 Architecture: 
     Tuple: (Type of Layer, Num of Output Channels)
@@ -23,6 +25,7 @@ class ConvBlock(nn.Module):
         self.conv = GCNConv(in_channels, out_channels)
         self.leakyrelu = nn.LeakyReLU(0.1)
         self.batchnorm = nn.BatchNorm1d(out_channels)
+        
 
     def forward(self, x, edge_index, edge_attr):
         conv = self.conv(x, edge_index, edge_attr)
@@ -39,10 +42,11 @@ class FCN(nn.Module):
         return self.leakyrelu(self.linear(x))
 
 class LatNet(nn.Module):
-    def __init__(self, in_features, num_nodes):
+    def __init__(self, in_features, num_nodes, batch_size=1):
         super(LatNet, self).__init__()
-        self.in_features = in_features
         self.num_nodes = num_nodes
+        self.batch_size = batch_size
+        self.in_features = in_features
         self.architecture = ARCHITECTURE
         self.layers = self._create_layers(self.architecture)
 
@@ -53,7 +57,7 @@ class LatNet(nn.Module):
                 x = layer(x, edge_index, edge_attr)
 
             if isinstance(layer, FCN):
-                x = layer(x.view(-1))
+                x = layer(x.view(self.batch_size, -1))
 
         return x
 
@@ -84,19 +88,17 @@ def test():
     print("\n---- Testing GCN Conv----")
     edge_index = torch.tensor([[0, 1, 1, 2],
                                [1, 0, 2, 1]], dtype=torch.long)
-    
-    x = torch.tensor([[-1, 2, 3, 1, 1, 1, 1, 1], [-1, 2, 3, 1, 1, 1, 1, 1], [-1, 2, 3, 1, 1, 1, 1, 1]], dtype=torch.float)
+    x = torch.tensor([[-1, 2, 3, 1, 1, 1, 1, 1], 
+                      [-1, 2, 3, 1, 1, 1, 1, 1], 
+                      [-1, 2, 3, 1, 1, 1, 1, 1]], dtype=torch.float)
 
-    """Edge Attr should only contain +ve values"""
-    edge_attr = torch.randn((edge_index.size(1), 1), dtype=torch.float)
+    edge_attr = torch.randn((edge_index.size(1), 1), dtype=torch.float) # should only contain +ve values
 
     test_data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
-
     test_conv_block = ConvBlock(8, 5)
     output_conv_block = test_conv_block(
         test_data.x, test_data.edge_index, test_data.edge_attr
     )
-
     print(f"Conv Block Output is {output_conv_block}")
 
     print("\n---- Testing FCN----")
@@ -104,15 +106,24 @@ def test():
     test_input = torch.randn(100)
     print(f"Test Output is {test_fcn(test_input)}")
 
-
     print("\n---- Testing the final Model----")
-    latency_estimator = LatNet(8, 3)
-    print(latency_estimator(test_data))
+    model = LatNet(8, 3)
+    print(f"Model Output for single value {model(test_data)}")
 
-    print(f"\n\n{latency_estimator}")
+    """Testing on a Batch"""
+    print("\n---- Testing on a Batch----")
+    batch_size = 5
+    data_loader, _ = load_data('../training_data/data/task_7', batch_size)
+    model = LatNet(2, 9, batch_size=batch_size)
 
+    data_iter = iter(data_loader)
+    first_batch = next(data_iter)
+    output = model(first_batch)
+    print(f"Input type is {type(first_batch)}")
+    print(f"Output type is {type(output)}")
+    print(output)
 
-test()
+# test()
 
 
 

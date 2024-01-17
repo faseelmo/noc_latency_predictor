@@ -5,8 +5,8 @@ from natsort import natsorted
 import utils
 
 import torch 
-from torch.utils.data import Dataset
-from torch_geometric.data import Data
+from torch_geometric.data import Data, Batch
+from torch.utils.data import Dataset, random_split, DataLoader
 
 class CustomData(Dataset): 
     def __init__(self, pickle_dir): 
@@ -94,6 +94,26 @@ class CustomData(Dataset):
         # utils.visualize_pyG(data, pos=new_pos)
 
         return data
+
+def custom_collate(data_list):
+    return Batch.from_data_list(data_list)
+
+def load_data(data_dir, batch_size=100):
+    dataset = CustomData(data_dir)
+    test_size = int(0.1 * len(dataset))
+    train_dataset, test_dataset = random_split(
+        dataset, [len(dataset) - test_size, test_size] 
+    )
+
+    train_loader = DataLoader(
+        train_dataset, batch_size=batch_size, shuffle=True, 
+        drop_last=True, collate_fn=custom_collate
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=batch_size, shuffle=True, 
+        drop_last=True, collate_fn=custom_collate)
+
+    return train_loader, test_loader
 
 def test():
     pickle_dir = '../training_data/data/task_7'
