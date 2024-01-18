@@ -19,14 +19,14 @@ DATA_DIR = '../training_data/data/task_7'
 INPUT_FEATURES = 2                                             #Node Level Features
 NUM_NODES = 9
 
+torch.manual_seed(1)
+
 def train_fn(train_loader, model, optimizer, loss_fn): 
     loop = tqdm(train_loader, leave=True)
 
     for batch_idx, data in enumerate(loop):
-
         output = model(data)
         loss = loss_fn(output.view(-1), data.y)
-
 
         optimizer.zero_grad()
         loss.backward()
@@ -54,7 +54,8 @@ def main():
         model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY
     )
 
-    loss_fn = nn.MSELoss()
+    # loss_fn = nn.MSELoss()
+    loss_fn = nn.L1Loss()
 
     for epoch in range(EPOCHS): 
         train_fn(train_loader, model, optimizer, loss_fn)

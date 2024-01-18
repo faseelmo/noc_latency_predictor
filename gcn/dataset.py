@@ -1,6 +1,7 @@
 import os
 import pickle
 from natsort import natsorted
+import numpy as np
 
 import utils
 
@@ -13,6 +14,9 @@ class CustomData(Dataset):
         entries = os.listdir(pickle_dir)
         self.data_dir = pickle_dir
         self.file_list = natsorted([entry for entry in entries if os.path.isfile(os.path.join(pickle_dir, entry))])
+        self.delay_max = 296
+        self.demand_max = 300
+        self.distance_max = 4
 
     def __len__(self):
         return len(self.file_list)
@@ -39,6 +43,8 @@ class CustomData(Dataset):
         task_demands.append(0)
         task_duration.insert(0,0)
         task_duration.append(0)
+        
+    
 
         """
             node_mapping={mapped_node: task_node, .... }
@@ -65,6 +71,11 @@ class CustomData(Dataset):
 
         """Node Level Features"""
         # pe = torch.tensor(task_node_list).view(-1,1).float()
+
+        # Normalizing Node Features
+        task_demands = min_max_scaler(np.array(task_demands), 0, self.demand_max)
+        task_duration = min_max_scaler(np.array(task_demands), 0, self.delay_max)
+
         demand_feature = torch.tensor(task_demands).view(-1,1).float()
         duration_feature = torch.tensor(task_duration).view(-1,1).float()
         x = torch.cat([demand_feature, duration_feature], dim=1)
@@ -80,6 +91,8 @@ class CustomData(Dataset):
 
             distance = utils.manhattan_distance(src_node_loc, dest_node_loc)
             distance_list.append(distance)
+
+        # distance_list = min_max_scaler(np.array(distance_list), 0, 4)
         edge_attr = torch.tensor(distance_list).view(-1,1).float()
 
         """Target Label"""
@@ -97,6 +110,10 @@ class CustomData(Dataset):
 
 def custom_collate(data_list):
     return Batch.from_data_list(data_list)
+
+def min_max_scaler(x, min, max):
+    return ((x - min ) / (max - min))
+    
 
 def load_data(data_dir, batch_size=100):
     dataset = CustomData(data_dir)

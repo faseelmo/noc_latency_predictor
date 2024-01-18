@@ -10,12 +10,24 @@ Architecture:
     Tuple: (Type of Layer, Num of Output Channels)
 """
 
-torch.manual_seed(1)
+# torch.manual_seed(1)
 
 ARCHITECTURE = [
-    ('Conv', 2),
-    ('Conv', 3),
-    ('Linear', 4), 
+    ('Conv', 256),
+    ('Conv', 512),
+    ('Conv', 1024),
+    ('Conv', 2048),
+    ('Conv', 1024),
+    ('Conv', 512),
+    ('Conv', 256),
+    ('Conv', 128),
+    ('Linear', 4096), 
+    ('Linear', 1024), 
+    ('Linear', 512), 
+    ('Linear', 256), 
+    ('Linear', 128), 
+    ('Linear', 64), 
+    ('Linear', 32), 
     ('Linear', 1), 
 ]
 
@@ -30,15 +42,18 @@ class ConvBlock(nn.Module):
     def forward(self, x, edge_index, edge_attr):
         conv = self.conv(x, edge_index, edge_attr)
         return self.batchnorm(self.leakyrelu(conv))
+        # return self.leakyrelu(conv)
 
 class FCN(nn.Module):
     def __init__(self, in_nodes, out_nodes):
         super(FCN, self).__init__()
         self.linear = nn.Linear(in_nodes, out_nodes)
         self.leakyrelu = nn.LeakyReLU(0.1)
+        self.batchnorm = nn.BatchNorm1d(out_nodes)
         """Do I have to do BatchNorm here?"""
 
     def forward(self, x): 
+        # return self.batchnorm(self.leakyrelu(self.linear(x)))
         return self.leakyrelu(self.linear(x))
 
 class LatNet(nn.Module):
@@ -103,12 +118,12 @@ def test():
 
     print("\n---- Testing FCN----")
     test_fcn = FCN(100,10)
-    test_input = torch.randn(100)
+    test_input = torch.randn(10, 100)
     print(f"Test Output is {test_fcn(test_input)}")
 
     print("\n---- Testing the final Model----")
-    model = LatNet(8, 3)
-    print(f"Model Output for single value {model(test_data)}")
+    # model = LatNet(8, 3)
+    # print(f"Model Output for single value {model(test_data)}")
 
     """Testing on a Batch"""
     print("\n---- Testing on a Batch----")
@@ -122,6 +137,8 @@ def test():
     print(f"Input type is {type(first_batch)}")
     print(f"Output type is {type(output)}")
     print(output)
+
+    print(f"\n\nTotal Parameter count is { sum(p.numel() for p in model.parameters())}")
 
 # test()
 
