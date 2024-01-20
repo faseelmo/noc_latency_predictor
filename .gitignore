@@ -1,9 +1,11 @@
 __pycache__/
 *.py[cod]
+*.gz
+*.csv
+*.txt
 *$py.class
 training_data/ratatoskr/BuffUsage
 training_data/ratatoskr/VCUsage
-training_data/ratatoskr/results
 training_data/ratatoskr/config/data.xml
 training_data/ratatoskr/config/map.xml
 training_data/data/

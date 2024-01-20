@@ -1,10 +1,10 @@
-# Use Ubuntu 20.04 as the base image
+# Docker file forked from https://github.com/marczwalua/systemc 
+# and modified for ratatoskr
+
 FROM ubuntu:20.04
 
-MAINTAINER Marc Zwalua
-
 ENV SYSTEMC_VERSION 2.3.3
-ENV SYSTEMC_AMS_VERSION 2.3
+# ENV SYSTEMC_AMS_VERSION 2.3
 ENV CXX g++
 ENV SYSTEMC_HOME /usr/local/systemc-$SYSTEMC_VERSION
 ENV LD_LIBRARY_PATH /usr/local/systemc-$SYSTEMC_VERSION/lib-linux64
@@ -18,13 +18,13 @@ RUN apt-get update \
     && apt-get install -y libzmq5 \
     && apt-get install -y libboost-program-options1.71.0 \
     && apt-get install -y python3 \
-    && apt-get install -y python3 python3-pip
+    && apt-get install -y python3 python3-pip \
     && apt-get install -y build-essential cmake bash nano tar zip
 
 RUN apt-get install python3-pip -y \
     && pip install pandas \
     && pip install matplotlib \
-    && pip install networkx \
+    && pip install networkx 
 
 
 # Make dir and change workdir
@@ -33,9 +33,11 @@ WORKDIR /usr/local/
 
 # Download systemc and unpack
 COPY systemc-$SYSTEMC_VERSION.tar.gz systemc-$SYSTEMC_VERSION.tar.gz
-COPY systemc-ams-$SYSTEMC_AMS_VERSION.tar.gz systemc-ams-$SYSTEMC_AMS_VERSION.tar.gz
+# COPY systemc-ams-$SYSTEMC_AMS_VERSION.tar.gz systemc-ams-$SYSTEMC_AMS_VERSION.tar.gz
+
+
 RUN tar -xzf systemc-$SYSTEMC_VERSION.tar.gz
-RUN tar -xzf systemc-ams-$SYSTEMC_AMS_VERSION.tar.gz
+# RUN tar -xzf systemc-ams-$SYSTEMC_AMS_VERSION.tar.gz
 
 # Prepare installation systemC
 RUN mkdir /usr/local/systemc-$SYSTEMC_VERSION/objdir
@@ -49,8 +51,8 @@ RUN make
 RUN make install
 
 # Prepare installation systemC-ams
-RUN mkdir /usr/local/systemc-ams-$SYSTEMC_AMS_VERSION/objdir
-WORKDIR /usr/local/systemc-ams-$SYSTEMC_AMS_VERSION/objdir
+# RUN mkdir /usr/local/systemc-ams-$SYSTEMC_AMS_VERSION/objdir
+# WORKDIR /usr/local/systemc-ams-$SYSTEMC_AMS_VERSION/objdir
 
 # Configure systemc ams
 RUN ../configure --with-systemc=/usr/local/systemc-$SYSTEMC_VERSION --disable-systemc-compile_check
