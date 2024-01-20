@@ -44,8 +44,6 @@ class CustomData(Dataset):
         task_duration.insert(0,0)
         task_duration.append(0)
         
-    
-
         """
             node_mapping={mapped_node: task_node, .... }
         """
@@ -72,13 +70,29 @@ class CustomData(Dataset):
         """Node Level Features"""
         # pe = torch.tensor(task_node_list).view(-1,1).float()
 
+        x_pos = []
+        y_pos = []
+        network = utils.net_3x3
+        mesh_size = int(len(network) ** 0.5)
+
+        for pe in map_node_list:
+            if pe in network:
+                x,y = network[pe]
+                x_pos.append(x/(mesh_size-1))
+                y_pos.append(y/(mesh_size-1))
+
+        x_pos = torch.tensor(x_pos).view(-1,1).float()
+        y_pos = torch.tensor(y_pos).view(-1,1).float()
+
+        pe_pos = torch.cat([x_pos, y_pos], dim=1)
+
         # Normalizing Node Features
         task_demands = min_max_scaler(np.array(task_demands), 0, self.demand_max)
         task_duration = min_max_scaler(np.array(task_demands), 0, self.delay_max)
 
         demand_feature = torch.tensor(task_demands).view(-1,1).float()
         duration_feature = torch.tensor(task_duration).view(-1,1).float()
-        x = torch.cat([demand_feature, duration_feature], dim=1)
+        x = torch.cat([pe_pos, demand_feature, duration_feature], dim=1)
 
         """Edge Level Features"""
         distance_list = []

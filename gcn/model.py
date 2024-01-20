@@ -129,7 +129,7 @@ def test():
     print("\n---- Testing on a Batch----")
     batch_size = 5
     data_loader, _ = load_data('../training_data/data/task_7', batch_size)
-    model = LatNet(2, 9, batch_size=batch_size)
+    model = LatNet(4, 9, batch_size=batch_size)
 
     data_iter = iter(data_loader)
     first_batch = next(data_iter)

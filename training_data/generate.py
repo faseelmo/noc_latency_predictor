@@ -12,7 +12,7 @@ parser.add_argument('--highDemandCount', type=int, default=None, help='Number of
 
 args = parser.parse_args()
 
-NETWORK_SIZE = 3
+NETWORK_SIZE = 4
 
 all_gen = args.gen
 tasks = args.tasksNum

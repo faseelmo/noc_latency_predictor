@@ -16,3 +16,14 @@ python3 generate.py --tasks 5
 python3 generate.py --gen --tasksNum 4 --mapsPerTask 50
 ```
 > The results can be seen in _training_data/data_.
+
+3. Demand and PE Delay 
+Current demand parameters are set to  
+    - lowDemend = [1,100]  
+    - mediumDemend = [100,300]  
+    - highDemend = [300,500]  
+    If needed these values can be modied in [DAG Genearator](training_data/utils/DAG_Generator.py)  
+
+For now delay values of each processing element is also set using the above demand parameters.  
+Note: The term 'duration' and 'delay' are used interchangeably in the code.
+

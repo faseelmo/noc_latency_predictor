@@ -5,7 +5,6 @@ import random, math
 import numpy as np 
 import matplotlib.pyplot as plt 
 import networkx as nx 
-import sys
 
 class DAG:
     def __init__(self, nodes, max_out = 3, alpha = 1.0, beta = 1.0, withDemand=False,  isLowDemand=False, isMediumDemand=False, isHighDemand=False, withDuration=False):

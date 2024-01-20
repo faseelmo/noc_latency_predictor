@@ -10,13 +10,13 @@ from tqdm import tqdm
 """Training Information """
 EPOCHS = 100
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-LEARNING_RATE = 2e-5
+LEARNING_RATE = 2e-4
 WEIGHT_DECAY = 0
-BATCH_SIZE = 100
+BATCH_SIZE = 128
 
 """Dataset Information """
 DATA_DIR = '../training_data/data/task_7'
-INPUT_FEATURES = 2                                             #Node Level Features
+INPUT_FEATURES = 4                                             #Node Level Features
 NUM_NODES = 9
 
 torch.manual_seed(1)
@@ -54,7 +54,6 @@ def main():
         model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY
     )
 
-    # loss_fn = nn.MSELoss()
     loss_fn = nn.L1Loss()
 
     for epoch in range(EPOCHS): 
