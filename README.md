@@ -9,7 +9,7 @@ docker run -ti systemc
 Once inside the docker container, you can clone this repo and then run the simulation.  
 When the simulation is done, you can copy the data from the docker container to the host machine using 
 ```
-docker cp systemc:<container-path> <host-path>
+docker cp <container-id>:<container-path> <host-path>
 ```
 
 ### Training Data Generation 
@@ -31,7 +31,7 @@ python3 generate.py --gen --tasksNum 4 --mapsPerTask 50
 ```
 > The results can be seen in _training_data/data_.
 
-3. Demand and PE Delay 
+3. Demand and PE Delay  
 Current demand parameters are set to  
     - lowDemend = [1,100]  
     - mediumDemend = [100,300]  
