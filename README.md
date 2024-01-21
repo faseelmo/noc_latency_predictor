@@ -2,6 +2,7 @@
 Ratatoskr simulator depends on SystemC. If your machine dosent have systemC, you can either install it, or run the simulation on a docker image. To build and run the docker image, execute the following commands. 
 
 ```
+cd docker
 source download_sysc.sh
 docker build --no-cache -t systemc .
 docker run -ti systemc
