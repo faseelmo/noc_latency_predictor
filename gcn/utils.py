@@ -32,7 +32,7 @@ def visGraphGrid(edges, network_grid):
     usage: visGraphGrid(data_dict['task_graph'].edges, net_3x3)
     """
     nodes = list(range(len(network_grid), 2*len(network_grid), 1))
-    print(f"\nNum of PE's = {len(network_grid)}") 
+    # print(f"\nNum of PE's = {len(network_grid)}") 
 
     G = nx.DiGraph()
     G.add_nodes_from(nodes)

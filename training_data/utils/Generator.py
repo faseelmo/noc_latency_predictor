@@ -3,7 +3,6 @@ import subprocess
 import pandas as pd
 import os
 import pickle
-import sys
 
 from utils.TASK_Generator import TaskGenerator
 from utils.DAG_Generator import DAG

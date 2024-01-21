@@ -17,7 +17,6 @@ RUN apt-get update \
     && apt-get install -y libzmq5 \
     && apt-get install -y libboost-program-options1.71.0 \
     && apt-get install -y python3 \
-    && apt-get install -y python3 python3-pip \
     && apt-get install -y build-essential cmake bash nano tar zip
 
 RUN apt-get install python3-pip -y \
