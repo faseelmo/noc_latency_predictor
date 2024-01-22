@@ -45,22 +45,25 @@ class ConvBlock(nn.Module):
         # return self.leakyrelu(conv)
 
 class FCN(nn.Module):
-    def __init__(self, in_nodes, out_nodes):
+    def __init__(self, in_nodes, out_nodes, act=True):
         super(FCN, self).__init__()
+        self.act = act
         self.linear = nn.Linear(in_nodes, out_nodes)
-        self.leakyrelu = nn.LeakyReLU(0.1)
-        self.batchnorm = nn.BatchNorm1d(out_nodes)
+        if self.act:
+            self.leakyrelu = nn.LeakyReLU(0.1)
+        # self.batchnorm = nn.BatchNorm1d(out_nodes)
         """Do I have to do BatchNorm here?"""
 
     def forward(self, x): 
-        # return self.batchnorm(self.leakyrelu(self.linear(x)))
-        return self.leakyrelu(self.linear(x))
+        if self.act:
+            return self.leakyrelu(self.linear(x))
+        else: 
+            return self.linear(x)
 
 class LatNet(nn.Module):
-    def __init__(self, in_features, num_nodes, batch_size=1):
+    def __init__(self, in_features, num_nodes):
         super(LatNet, self).__init__()
         self.num_nodes = num_nodes
-        self.batch_size = batch_size
         self.in_features = in_features
         self.architecture = ARCHITECTURE
         self.layers = self._create_layers(self.architecture)
@@ -72,7 +75,9 @@ class LatNet(nn.Module):
                 x = layer(x, edge_index, edge_attr)
 
             if isinstance(layer, FCN):
-                x = layer(x.view(self.batch_size, -1))
+                print(f"\nlayer is {(layer.linear.in_features)}, {layer.linear.out_features}")
+                x = layer(x.view(-1, layer.linear.in_features))
+                print(f"Shape of x is {x.shape}")
 
         return x
 
@@ -81,7 +86,7 @@ class LatNet(nn.Module):
         in_channels = self.in_features
         first_fcn_flag = True
 
-        for module in architecture:
+        for idx, module in enumerate(architecture):
             block, out_channels = module
 
             if block == 'Conv':
@@ -93,7 +98,10 @@ class LatNet(nn.Module):
                     in_channels = self.num_nodes*in_channels
                     first_fcn_flag = False
 
-                layers.append(FCN(in_channels, out_channels))
+                if idx == len(architecture) - 1:
+                    layers.append(FCN(in_channels, out_channels, act=False))
+                else: 
+                    layers.append(FCN(in_channels, out_channels))
                 in_channels = out_channels
 
         return nn.Sequential(*layers)
@@ -127,18 +135,19 @@ def test():
 
     """Testing on a Batch"""
     print("\n---- Testing on a Batch----")
-    batch_size = 5
+    batch_size = 100
     data_loader, _ = load_data('../training_data/data/task_7', batch_size)
-    model = LatNet(4, 9, batch_size=batch_size)
+    model = LatNet(4, 9)
 
+    print(f"Data Loader size {len(data_loader)}")
     data_iter = iter(data_loader)
     first_batch = next(data_iter)
-    output = model(first_batch)
-    print(f"Input type is {type(first_batch)}")
-    print(f"Output type is {type(output)}")
-    print(output)
 
+    output = model(first_batch)
+    # print(f"Input type is {type(first_batch)}")
+    # print(f"Output type is {type(output)}")
     print(f"\n\nTotal Parameter count is { sum(p.numel() for p in model.parameters())}")
+    print(model)
 
 # test()
 

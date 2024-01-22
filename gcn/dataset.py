@@ -1,7 +1,7 @@
 import os
 import pickle
-from natsort import natsorted
 import numpy as np
+from natsort import natsorted
 
 import utils
 
@@ -69,10 +69,9 @@ class CustomData(Dataset):
 
         """Node Level Features"""
         # pe = torch.tensor(task_node_list).view(-1,1).float()
-
         x_pos = []
         y_pos = []
-        network = utils.net_3x3
+        network = utils.net_4x4
         mesh_size = int(len(network) ** 0.5)
 
         for pe in map_node_list:
@@ -100,8 +99,8 @@ class CustomData(Dataset):
             src_node = edge[0]
             dest_node = edge[1]
 
-            src_node_loc = utils.net_3x3[src_node]
-            dest_node_loc = utils.net_3x3[dest_node]
+            src_node_loc = network[src_node]
+            dest_node_loc = network[dest_node]
 
             distance = utils.manhattan_distance(src_node_loc, dest_node_loc)
             distance_list.append(distance)
@@ -111,7 +110,6 @@ class CustomData(Dataset):
 
         """Target Label"""
         target_label = torch.tensor([task_processing_time]).float()
-
         data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=target_label)
         
         """un-comment for debug"""
