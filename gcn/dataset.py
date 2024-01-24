@@ -14,9 +14,9 @@ class CustomData(Dataset):
         entries = os.listdir(pickle_dir)
         self.data_dir = pickle_dir
         self.file_list = natsorted([entry for entry in entries if os.path.isfile(os.path.join(pickle_dir, entry))])
-        self.delay_max = 296
-        self.demand_max = 300
-        self.distance_max = 4
+        self.delay_max = 100
+        self.demand_max = 100
+        self.distance_max = 6
 
     def __len__(self):
         return len(self.file_list)
