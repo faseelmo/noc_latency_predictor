@@ -3,6 +3,8 @@ __pycache__/
 *.gz
 *.csv
 *.txt
+*.pkl
+*.pth
 *$py.class
 training_data/ratatoskr/BuffUsage
 training_data/ratatoskr/VCUsage

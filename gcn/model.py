@@ -75,9 +75,7 @@ class LatNet(nn.Module):
                 x = layer(x, edge_index, edge_attr)
 
             if isinstance(layer, FCN):
-                print(f"\nlayer is {(layer.linear.in_features)}, {layer.linear.out_features}")
                 x = layer(x.view(-1, layer.linear.in_features))
-                print(f"Shape of x is {x.shape}")
 
         return x
 
