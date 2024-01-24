@@ -25,7 +25,7 @@ def train_fn(train_loader, model, optimizer, loss_fn):
     loop = tqdm(train_loader, leave=True)
 
     for batch_idx, data in enumerate(loop):
-        output = model(data)
+        output = model(data).to(DEVICE)
         loss = loss_fn(output.view(-1), data.y)
 
         optimizer.zero_grad()
@@ -48,7 +48,7 @@ def validation_fn(test_loader, model, loss_fn, epoch):
 def main():
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
 
-    model = LatNet(INPUT_FEATURES, NUM_NODES, BATCH_SIZE)
+    model = LatNet(INPUT_FEATURES, NUM_NODES, BATCH_SIZE).to(DEVICE)
 
     optimizer = optim.Adam(
         model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY
