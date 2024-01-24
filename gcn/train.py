@@ -77,9 +77,9 @@ def main():
         train_fn(train_loader, model, optimizer, loss_fn)
         loss = validation_fn(test_loader, model, loss_fn, epoch)
         validation_loss.append((epoch, loss))
+        plot_and_save_loss(validation_loss)
 
     torch.save(model.state_dict(), 'LatNet.pth')
-    plot_and_save_loss(validation_loss)
         
 if __name__ == "__main__":
     main()
