@@ -11,9 +11,9 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 """Training Information """
-EPOCHS = 100
+EPOCHS = 500
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-LEARNING_RATE = 2e-4
+LEARNING_RATE = 5e-4
 WEIGHT_DECAY = 0
 BATCH_SIZE = 128
 
