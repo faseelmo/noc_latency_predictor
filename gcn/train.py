@@ -55,7 +55,7 @@ def validation_fn(test_loader, model, loss_fn, epoch):
         mean_loss.append(loss.item()) 
     
     validation_set_loss = sum(mean_loss)/len(mean_loss)
-    print(f"[{epoch}] Validation MAE is {validation_set_loss}")
+    print(f"[{epoch+1}/{EPOCHS}] Validation MAE is {validation_set_loss}")
     return validation_set_loss
 
 def plot_and_save_loss(train_loss, valid_loss):
