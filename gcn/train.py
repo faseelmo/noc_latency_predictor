@@ -105,7 +105,7 @@ def main():
         plot_and_save_loss(train_loss_list, valid_loss_list)
 
         if (epoch+1) % 100 == 0:
-            torch.save(model.state_dict(), f'LatNet_{epoch+1}.pt')
+            torch.save(model.state_dict(), f'LatNet_{epoch+1}.pth')
 
     torch.save(model.state_dict(), 'LatNet.pth')
     end_time = time.time()
