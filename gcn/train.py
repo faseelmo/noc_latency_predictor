@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn 
 import torch.optim as optim 
 
-from model import LatNet
-from dataset import load_data
+from .model import LatNet
+from .dataset import load_data
 
 import time
 import pickle

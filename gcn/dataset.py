@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 from natsort import natsorted
 
-import utils
+from .utils import *
 
 import torch 
 from torch_geometric.data import Data, Batch
@@ -71,8 +71,8 @@ class CustomData(Dataset):
         # pe = torch.tensor(task_node_list).view(-1,1).float()
         x_pos = []
         y_pos = []
-        network = utils.net_4x4
-        mesh_size = int(len(network) ** 0.5)
+        network = net_4x4
+        mesh_size = int(len(network) ** 0.5) # 4 -> 4x4 Network and 3 -> 3x3 Network
 
         for pe in map_node_list:
             if pe in network:
@@ -102,7 +102,7 @@ class CustomData(Dataset):
             src_node_loc = network[src_node]
             dest_node_loc = network[dest_node]
 
-            distance = utils.manhattan_distance(src_node_loc, dest_node_loc)
+            distance = manhattan_distance(src_node_loc, dest_node_loc)
             distance_list.append(distance)
 
         # distance_list = min_max_scaler(np.array(distance_list), 0, 4)

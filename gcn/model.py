@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch_geometric.data import Data
 from torch_geometric.nn import GCNConv
 
-from dataset import load_data
+from .dataset import load_data
 
 """
 Architecture: 

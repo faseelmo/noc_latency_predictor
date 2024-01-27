@@ -20,9 +20,10 @@ def visGraph(graph, pos=None):
     usage: visGraph(data_dict['task_graph'], pos=data_dict['task_graph_pos'])
     """
     if pos is None:
-        pos = nx.spring_layout(graph, seed=42)
-        pos['Start'] = np.array([-1,0])
-        pos['Exit'] = np.array([1,0])
+        # pos = nx.spring_layout(graph, seed=42)
+        pos = nx.spectral_layout(graph)
+        # pos['Start'] = np.array([-1,0])
+        # pos['Exit'] = np.array([1,0])
     nx.draw(graph, pos, with_labels=True, node_size=700, node_color='skyblue', font_size=10, font_color='black', font_weight='bold', arrowsize=20)
     plt.show()
 
