@@ -22,7 +22,6 @@ class DAG:
             self.getValidDemand(isLowDemand, isMediumDemand, isHighDemand)
 
         self.generator()
-        print(self.duration)
 
     
     def getValidDemand(self, isLowDemand, isMediumDemand, isHighDemand):

@@ -94,7 +94,6 @@ def main():
         distance = manhattan_distance(src_loc, dest_loc)
         distance_list.append(distance)
 
-
     # Get PE Position 
     x_pos = []
     y_pos = []

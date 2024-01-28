@@ -56,9 +56,6 @@ class Generator:
                     self.generate(max_out, alpha, beta, demand) # Need to pass these arguments for DAG Generator
 
     def generate_with_demand(self):
-        """Need to Add a for loop here for different list of demands.
-            Low List, Medium List, High List
-        """
         demand_all_none = all(element is None for element in self.demand_requirement)
 
         if demand_all_none:
