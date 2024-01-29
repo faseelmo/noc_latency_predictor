@@ -6,18 +6,24 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import networkx as nx 
 
+seed = 1
+random.seed(seed)
+np.random.seed(seed)
+
 class DAG:
 
-    def __init__(self, nodes, max_out = 3, alpha = 1.0, beta = 1.0):
-        self.nodes = nodes 
+    def __init__(self, nodes, max_out = 3, alpha = 1.0, beta = 1.0, demand_range=(1,10)):
+        self.num_nodes = nodes  # Number of Non-Start and Non-Exit nodes
         self.max_out = max_out 
         self.alpha = alpha  
         self.beta = beta
         self.position = {'Start':(0,4),'Exit':(10,4)}
 
         graph = self.graph_generator()
-        self.add_demand(graph)
-        self.add_delay(graph)
+
+        low, high = demand_range
+        self.add_demand(graph, low, high)
+        self.add_delay(graph, low, high)
 
         self.graph = graph
         self.edge_attr = nx.get_edge_attributes(graph, 'demand')
@@ -37,7 +43,7 @@ class DAG:
 
     def graph_generator(self):
 
-        n = self.nodes 
+        n = self.num_nodes 
         max_out = self.max_out
         alpha = self.alpha
         beta = self.beta
@@ -131,4 +137,4 @@ def test():
         nx.draw_networkx_labels(dag.graph, pos=dag.position, labels=dag.node_attr)  
     plt.show()
 
-test()
+# test()

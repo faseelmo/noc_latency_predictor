@@ -1,4 +1,4 @@
-from utils.XML_Generator import XMLGenerator 
+from .XML_Generator import XMLGenerator 
 import random
 import shutil
 import os 
@@ -7,10 +7,18 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 class MapGenerator:
-    def __init__(self, num_of_tasks, network, file_location):
-        self.num_of_tasks = num_of_tasks
+    def __init__(self, dag, network, file_location):
+        """
+            network="4" for 4x4 mesh
+            network="3" for 3x3 mesh
+        """
+        self.num_of_tasks = len(dag.graph.nodes)
         self.network = network 
         self.map = self.doMap()
+
+        print(self.map)
+        print(dag.graph)
+
         self.createMapFile(file_location)
         self.map_graph = None
         self.position = None
@@ -112,10 +120,12 @@ class MapGenerator:
         plt.savefig(graph_path, format="PNG")
         plt.close(fig)
 
-
-
             
+def test(): 
+    from .DAG_Generator import DAG
+    dag = DAG(nodes=4, max_out=2, demand_range=(1,100))
+    from .TASK_Generator import TaskGenerator
+    task = TaskGenerator(dag, 'data.xml')
+    map = MapGenerator(dag, network="4", file_location="test_map.xml")
 
-
-
-
+test()
