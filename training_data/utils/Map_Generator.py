@@ -35,13 +35,13 @@ class MapGenerator:
         Also copies appropriate network file from misc/ to config/ 
         """
         network_file_path = 'ratatoskr/config/misc/networks/' 
-        if network == "4":
+        if network == 4:
             list_of_pe = list(range(16, 32, 1))
             network_file_name = '4x4_Mesh.xml' 
-        elif network == "2":
+        elif network == 2:
             list_of_pe = list(range(4, 8, 1))
             network_file_name = '2x2_Mesh.xml' 
-        elif network == "3":
+        elif network == 3:
             list_of_pe = list(range(9, 18, 1))
             network_file_name = '3x3_Mesh.xml' 
         else: 
@@ -72,6 +72,6 @@ def test():
     dag = DAG(nodes=4, max_out=2, demand_range=(1,100))
     from .TASK_Generator import TaskGenerator
     task = TaskGenerator(dag, 'data.xml')
-    map = MapGenerator(dag, network="4", file_location="test_map.xml")
+    map = MapGenerator(dag, network=4, file_location="test_map.xml")
 
-test()
+# test()

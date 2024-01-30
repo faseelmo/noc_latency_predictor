@@ -122,15 +122,15 @@ class TaskGenerator:
 #     import sys
 #     sys.exit(0)
 
-def test(): 
-    from DAG_Generator import DAG
-    dag = DAG(nodes=4, max_out=2, demand_range=(1,100))
+# def test(): 
+#     from DAG_Generator import DAG
+#     dag = DAG(nodes=4, max_out=2, demand_range=(1,100))
 
     # import networkx as nx
     # import matplotlib.pyplot as plt
     # nx.draw(dag.graph,  pos=dag.position, with_labels=True,  font_weight='bold', node_color='skyblue', edge_color='gray', node_size=800)
     # nx.draw_networkx_edge_labels(dag.graph, pos=dag.position, edge_labels=dag.edge_attr)
     # plt.show()
-    task = TaskGenerator(dag, 'test_data.xml')
+    # task = TaskGenerator(dag, 'test_data.xml')
 
 # test()

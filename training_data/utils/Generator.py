@@ -4,186 +4,117 @@ import pandas as pd
 import os
 import pickle
 
-from utils.TASK_Generator import TaskGenerator
-from utils.DAG_Generator import DAG
-from utils.Map_Generator import MapGenerator
+from .TASK_Generator import TaskGenerator
+from .DAG_Generator import DAG
+from .Map_Generator import MapGenerator
 
 class Generator:
-    def __init__(self, result_path='', num_of_tasks=4, mesh_size=4, maps_per_task=1,sim_count=0, run_sim=True):
+    def __init__(self, result_path='', num_of_tasks=4, demand_range=(1,100), network_mesh_size=4, maps_per_task=1, sim_count=0):
+        
+        self.max_out_list = [1,2,3,4,5]     # Max out_degree of one node
+        self.alpha_list = [0.5,1.0,1.5]     # DAG shape
+        self.beta_list  = [0.0,0.5,1.0,2.0] # DAG regularity
+        self.num_of_task = num_of_tasks     # This is excluding the Start and Exit Node
 
-        self.runsim = run_sim
-        self.network = str(mesh_size)
-        self.num_of_tasks = num_of_tasks 
-        self.maps_per_task = maps_per_task
-        self.demand_requirement = None
- 
         self.result_path = result_path
-        self.sim_path = 'ratatoskr/config/'
-
-        self.set_max_out = [1,2,3,4,5]    #max out_degree of one node
-        # self.set_max_out = [4,5]            #max out_degree of one node
-        self.set_alpha = [0.5,1.0,1.5]      #DAG shape
-        self.set_beta = [0.0,0.5,1.0,2.0]   #DAG regularity
+        self.sim_count = 0
         
-        self.map_count = 0
-        self.sim_count = sim_count
+        self.demand_range = demand_range
+        self.network = network_mesh_size
 
-        self.dag = None
-        self.task = None
-        self.mapper = None
-        self.latency_list = []
-        self.sim_time_string = ''
-        self.current_demand = None
-        self.save_dict_flag = False
-        self.total_sims_required = 1
-        self.sim_successfull_flag = False
-        self.totat_processing_time = None
+        self.maps_per_task = maps_per_task
 
-    def generateAllDag(self):
-        if self.result_path == '':
-            raise ValueError("If allDAG=True, must specify valid result_path argument")
-
-        self.save_dict_flag = True
-        self.showSimCount()
         self.checkResultPath()
-        self.generate_with_demand()
+        # self.generate_all_dag()
+        self.generate()
 
-    def runAllSim(self, demand=(False, False, False)):
-        print("Running All Sims\n\n")
-        for max_out in self.set_max_out:
-            for alpha in self.set_alpha:
-                for beta in self.set_beta:
-                    self.generate(max_out, alpha, beta, demand) # Need to pass these arguments for DAG Generator
+    def generate_all_dag(self):
+        self.showSimCount()
+        for max_out in self.max_out_list:
+            for alpha in self.alpha_list:
+                for beta in self.beta_list:
+                    self.generate(dag_param=(max_out, alpha, beta))
 
-    def generate_with_demand(self):
-        demand_all_none = all(element is None for element in self.demand_requirement)
+    def generate(self, dag_param=(3, 1.0, 1.0)):
+        max_out, alpha, beta = dag_param
+        dag = DAG(
+            nodes=self.num_of_task,
+            max_out=max_out, 
+            alpha=alpha,
+            beta=beta, 
+            demand_range=self.demand_range
+        )
+        TaskGenerator(dag, 'ratatoskr/config/data.xml')     # Creates the relevant data.xml file in config dir
 
-        if demand_all_none:
-            print("Without Sim Demand Requirement")
-            self.runAllSim()
+        for i in range(self.maps_per_task):                 # For multiple maps per task
+            mapper = MapGenerator(
+                dag=dag, 
+                network=self.network, 
+                file_location='ratatoskr/config/map.xml'
+            )                                               # Assigns a random map for the dag and creates the map.xml file in config dir
+            sim_results = self.doSim(mapper, showSimOutput=True)
+            self.saveResults(dag, mapper.map, sim_results)
 
-        if self.demand_requirement is not None:
-            print("With Demand Requirement")
-            demand_index = 0
-            for demand_iter in self.demand_requirement: # Iterating for each demand
-                if demand_iter != None:
-                    for i in range(demand_iter):
-                        self.current_demand = demand_index
-                        if demand_index == 0 : self.runAllSim(demand=(True, False, False))
-                        elif demand_index == 1 : self.runAllSim(demand=(False, True, False))
-                        elif demand_index == 2 : self.runAllSim(demand=(False, False, True))
-
-                demand_index += 1
-
-        
-    def generate(self, max_out, alpha, beta, demand=(False, False, False)):
-        self.generateDAGandTask(max_out, alpha, beta, demand) # arg for DAG Generator
-        """Support for Multiple Random Mapping for a single Task"""
-        self.map_count = 0
-        for i in range(self.maps_per_task):
-            self.map_count += 1
-            self.singleRandomMappingAndSim()
-
-    def generateDAGandTask(self, max_out, alpha, beta, demand):
-        self.dag = DAG(self.num_of_tasks, max_out, alpha, beta, withDemand=True, withDuration=True, 
-                       isLowDemand=demand[0], isMediumDemand=demand[1], isHighDemand=demand[2]) 
-        self.task = TaskGenerator(self.dag, self.sim_path + 'data.xml')
-
-    
-    def singleRandomMappingAndSim(self):
-        self.mapper= MapGenerator(self.task.num_of_tasks, self.network, self.sim_path + 'map.xml' )
-        self.mapper.plotTaskAndMap(self.task.task_graph, self.dag.position)
-
-        if self.runsim:
-            self.doSim()
-            self.saveResults()
-
-
-    def doSim(self, showSimOutput=False): 
-        self.sim_successfull_flag = False 
-        last_node = self.mapper.map[-1][1]
+    def doSim(self, mapper, showSimOutput=False): 
+        sim_successfull_flag = False 
+        last_node = mapper.map[self.num_of_task+1]
         successfull_string = '[ProcessingElementVC:startSending]  Node' + str(last_node)
         command = "cd ratatoskr/ && ./sim"
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-        """
-        sim_output_path is huuuuuge. 
-        so commented out 
-        # sim_output_path = 'ratatoskr/results/sim_output.txt'
-        # with open(sim_output_path, 'w') as file:
-        """
-        
         processing_time_string = 'Node' + str(last_node) 
         for line in process.stdout:
             if showSimOutput:
                 print(line, end=' ')
-            # file.write(line + ' ')
             if successfull_string in line:
-                self.sim_successfull_flag = True
+                sim_successfull_flag = True
             if processing_time_string in line and 'Receive Flit' in line: 
-                self.totat_processing_time = line.split()[0][:-3]
+                totat_processing_time = line.split()[0][:-3]
             if 'Execution time' in line: 
                 start_index = line.index(':')
-                self.sim_time_string = line[start_index+2:]
+                sim_time_string = line[start_index+2:].strip()
+            if 'Lost Packets' in line: 
+                start_index = line.index(':')
+                lost_packets = line[start_index+2:].strip()
+            if 'Average flit latency' in line: 
+                start_index = line.index(':')
+                avg_flit_lat = line[start_index+2:-4].strip()
+            if 'Average packet latency' in line: 
+                start_index = line.index(':')
+                avg_packet_lat = line[start_index+2:-4].strip()
+            if 'Average network latency' in line: 
+                start_index = line.index(':')
+                avg_network_lat = line[start_index+2:-4].strip()
 
-        # if self.sim_successfull_flag:
-            # print("\n----Sim Successfull----")
-        result = pd.read_csv('ratatoskr/results/report_Performance.csv', header=None)
-        result_values = result.values.tolist()
+        sim_result = {
+            'sim_successfull_flag'      : sim_successfull_flag, 
+            'network_processing_time'   : totat_processing_time, 
+            'sim_exec_time'             : sim_time_string, 
+            'lost_packets'              : lost_packets, 
+            'avg_flit_lat'              : avg_flit_lat, 
+            'avg_packet_lat'            : avg_packet_lat, 
+            'avg_network_lat'           : avg_network_lat
+        }
 
-        avg_flit_lat = result_values[0][1]
-        avg_packet_lat = result_values[1][1]
-        avg_network_lat = result_values[2][1]
-
-        self.latency_list = [avg_flit_lat, avg_packet_lat, avg_network_lat]
-        self.mapper.plotTaskAndMap(self.task.task_graph, self.dag.position, self.latency_list)
+        return sim_result
 
 
-    def saveResults(self):
-        result = {}
-        result["max_out"] = self.dag.max_out
-        result["alpha"] = self.dag.alpha
-        result["beta"] = self.dag.beta
-        result['network'] = self.network
-        result["task_graph"] = self.task.task_graph
-        result["task_graph_pos"] = self.dag.position
-        result["map_graph"] = self.mapper.map_graph
-        result["map_graph_pos"] = self.mapper.position
-        result["demand"] = self.task.demand
-        result["duration"] = self.task.duration
-        result["task_num"] = self.task.num_of_tasks
-        result["sim_successful"] = self.sim_successfull_flag
-        result['avg_flit_lat'] = self.latency_list[0]
-        result['avg_packet_lat'] = self.latency_list[1]
-        result['avg_network_lat'] = self.latency_list[2]
-        result['demand_level'] = self.current_demand
-        result['processing_time'] = float(self.totat_processing_time)
+    def saveResults(self, dag, map, sim_result):
+        result = {
+            'task_dag'  : dag, 
+            'network'   : self.network, 
+            'map'       : map, 
+        }
+
+        result.update(sim_result) # append the result dict with sim_results
 
         self.sim_count += 1
-
-        print(f"[{self.sim_count}/{self.total_sims_required}] Demand_Level: {self.current_demand}, Task_Param: {(self.dag.max_out, self.dag.alpha,self.dag.beta)}, Map_Count: {self.map_count}, Sim_Successful: {self.sim_successfull_flag}, Processing Time:{self.totat_processing_time} , Sim_Time: {self.sim_time_string} ")
-
-        if not self.save_dict_flag:
-            print("Not Saving Results")
-            return
-
         file_name = str(self.sim_count) + '.pickle'
         file_path = os.path.join(self.result_path,file_name)
 
         with open(file_path, 'wb') as file:
             pickle.dump(result, file)
 
-        return 
-
-    def getRandomDAGParameters(self, showParam=False):
-        max_out = random.choice(self.set_max_out) 
-        alpha = random.choice(self.set_alpha) 
-        beta = random.choice(self.set_beta) 
-        if showParam:
-            print("\n----DAG Parameters----")
-            print(f"Max Out: {max_out}, Alpha: {alpha}, Beta: {beta}\n")
-        return max_out, alpha, beta
-            
 
     def checkResultPath(self):
         if not os.path.exists(self.result_path):
@@ -193,12 +124,7 @@ class Generator:
             print(f"Directory '{self.result_path}' already exists.")
             input("Press Enter to Proceed ")
 
-    def showSimCount(self):
-        total_param_count = len(self.set_alpha) * len(self.set_beta) * len(self.set_max_out) * self.maps_per_task
-        total_demand = (self.demand_requirement[0] or 0) + (self.demand_requirement[1] or 0) + (self.demand_requirement[2] or 0)
+def test(): 
+    Generator(result_path= 'skraa', num_of_tasks=10, demand_range=(10,100))
 
-        if total_demand == 0: total_demand = 1
-        self.total_sims_required = total_param_count * total_demand        
-
-        print(f"Total Number of Simulation Required: {self.total_sims_required}")
-
+test()

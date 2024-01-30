@@ -6,9 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import networkx as nx 
 
-seed = 1
-random.seed(seed)
-np.random.seed(seed)
+# seed = 1
+# random.seed(seed)
+# np.random.seed(seed)
 
 class DAG:
 
@@ -126,15 +126,19 @@ class DAG:
 
         return graph 
 
+    def plot(self, show_node_attrib=True):
+        node_labels = not show_node_attrib
+        nx.draw(self.graph,  pos=self.position, with_labels=node_labels,  font_weight='bold', node_color='skyblue', edge_color='gray', node_size=800)
+        nx.draw_networkx_edge_labels(self.graph, pos=self.position, edge_labels=self.edge_attr)
+        if show_node_attrib:
+            nx.draw_networkx_labels(self.graph, pos=self.position, labels=self.node_attr)  
+        plt.show()
+
+
 def test(): 
     dag = DAG(nodes=5)
-    node_labels = False
-    nx.draw(dag.graph,  pos=dag.position, with_labels=node_labels,  font_weight='bold', node_color='skyblue', edge_color='gray', node_size=800)
     print(f"Edge Attributes: \n{dag.edge_attr} ")
     print(f"Node Attributes: \n{dag.node_attr} ")
-    nx.draw_networkx_edge_labels(dag.graph, pos=dag.position, edge_labels=dag.edge_attr)
-    if not node_labels: 
-        nx.draw_networkx_labels(dag.graph, pos=dag.position, labels=dag.node_attr)  
-    plt.show()
 
+    # dag.plot()
 # test()
