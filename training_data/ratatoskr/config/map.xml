@@ -2,50 +2,38 @@
 <map xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <bind>
     <task value="0"/>
-    <node value="19"/>
+    <node value="17"/>
   </bind>
   <bind>
     <task value="1"/>
-    <node value="29"/>
+    <node value="20"/>
   </bind>
   <bind>
     <task value="2"/>
-    <node value="16"/>
+    <node value="26"/>
   </bind>
   <bind>
     <task value="3"/>
-    <node value="18"/>
-  </bind>
-  <bind>
-    <task value="4"/>
     <node value="28"/>
   </bind>
   <bind>
-    <task value="5"/>
-    <node value="30"/>
+    <task value="4"/>
+    <node value="29"/>
   </bind>
   <bind>
-    <task value="6"/>
+    <task value="5"/>
     <node value="27"/>
   </bind>
   <bind>
-    <task value="7"/>
-    <node value="31"/>
-  </bind>
-  <bind>
-    <task value="8"/>
-    <node value="24"/>
-  </bind>
-  <bind>
-    <task value="9"/>
-    <node value="23"/>
-  </bind>
-  <bind>
-    <task value="10"/>
+    <task value="6"/>
     <node value="21"/>
   </bind>
   <bind>
-    <task value="11"/>
-    <node value="26"/>
+    <task value="7"/>
+    <node value="25"/>
+  </bind>
+  <bind>
+    <task value="8"/>
+    <node value="18"/>
   </bind>
 </map>

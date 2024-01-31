@@ -17,22 +17,22 @@ class Generator:
         self.num_of_task = num_of_tasks     # This is excluding the Start and Exit Node
 
         self.result_path = result_path
-        self.sim_count = 0
+        self.sim_count = sim_count
         
         self.demand_range = demand_range
         self.network = network_mesh_size
-
         self.maps_per_task = maps_per_task
+        self.total_sim_count = len(self.max_out_list) * len(self.alpha_list) * len(self.beta_list) * maps_per_task
 
         self.checkResultPath()
-        # self.generate_all_dag()
-        self.generate()
 
     def generate_all_dag(self):
-        self.showSimCount()
         for max_out in self.max_out_list:
+            print(f"    Simulating for max out: {max_out}")
             for alpha in self.alpha_list:
+                print(f"     Simulating for alpha: {alpha}")
                 for beta in self.beta_list:
+                    print(f"      Simulating for beta: {beta}")
                     self.generate(dag_param=(max_out, alpha, beta))
 
     def generate(self, dag_param=(3, 1.0, 1.0)):
@@ -52,8 +52,13 @@ class Generator:
                 network=self.network, 
                 file_location='ratatoskr/config/map.xml'
             )                                               # Assigns a random map for the dag and creates the map.xml file in config dir
-            sim_results = self.doSim(mapper, showSimOutput=True)
+
+            sim_results = self.doSim(mapper, showSimOutput=False)
+            if sim_results['sim_successfull_flag'] is False: print("[Warning] Sim not Successfull")
+            else: print(f"      [{i+1}/{self.maps_per_task}] Latency = {sim_results['network_processing_time']} ")
             self.saveResults(dag, mapper.map, sim_results)
+
+        print(f" All Mapping Combination done\n")
 
     def doSim(self, mapper, showSimOutput=False): 
         sim_successfull_flag = False 
@@ -98,7 +103,6 @@ class Generator:
 
         return sim_result
 
-
     def saveResults(self, dag, map, sim_result):
         result = {
             'task_dag'  : dag, 
@@ -125,6 +129,6 @@ class Generator:
             input("Press Enter to Proceed ")
 
 def test(): 
-    Generator(result_path= 'skraa', num_of_tasks=10, demand_range=(10,100))
-
-test()
+    gen = Generator(result_path= 'skraa', num_of_tasks=10, demand_range=(10,100))
+    gen.generate_all_dag()
+# test()
