@@ -1,8 +1,8 @@
+import time 
 import torch
 import numpy as np
 import networkx as nx 
 from gcn.model import LatNet
-import matplotlib.pyplot as plt
 from torch_geometric.data import Data
 from gcn.utils import visGraph, manhattan_distance, net_4x4
 from gcn.dataset import min_max_scaler
@@ -94,6 +94,7 @@ def main():
         distance = manhattan_distance(src_loc, dest_loc)
         distance_list.append(distance)
 
+
     # Get PE Position 
     x_pos = []
     y_pos = []
@@ -116,9 +117,11 @@ def main():
     edge_attr = torch.tensor(distance_list).view(-1,1).float()
     data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
 
+    start_time = time.time()
     pred = model(data)
+    end_time = time.time()
     print(f"Latency Prediction is {pred.item()}")
-
+    print(f"Inference Time {(end_time - start_time)*1000} ms")
 if __name__ == "__main__":
     main()
 
