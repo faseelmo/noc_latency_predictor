@@ -3,6 +3,7 @@
 """
 import random, math 
 import numpy as np 
+import uuid
 import matplotlib.pyplot as plt 
 import networkx as nx 
 
@@ -24,6 +25,8 @@ class DAG:
         low, high = demand_range
         self.add_demand(graph, low, high)
         self.add_delay(graph, low, high)
+        self.id = str(uuid.uuid4())
+        print(f"Created DAG ID us {self.id}")
 
         self.graph = graph
         self.edge_attr = nx.get_edge_attributes(graph, 'demand')
@@ -52,7 +55,6 @@ class DAG:
         mean_value = n/length
         random_num = np.random.normal(loc = mean_value, scale = beta,  size = (length,1))    
 
-        # Division
         generate_num = 0
         dag_num = 1
         dag_list = [] 
@@ -134,10 +136,9 @@ class DAG:
             nx.draw_networkx_labels(self.graph, pos=self.position, labels=self.node_attr)  
         plt.show()
 
-
-# def test(): 
-#     dag = DAG(nodes=5)
-#     print(f"Edge Attributes: \n{dag.edge_attr} ")
-#     print(f"Node Attributes: \n{dag.node_attr} ")
-#     dag.plot()
-# test()
+def test(): 
+    dag = DAG(nodes=5)
+    print(f"Edge Attributes: \n{dag.edge_attr} ")
+    print(f"Node Attributes: \n{dag.node_attr} ")
+    dag.plot()
+test()

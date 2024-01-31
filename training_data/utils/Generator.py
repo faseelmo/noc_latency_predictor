@@ -1,8 +1,6 @@
-import random
-import subprocess
-import pandas as pd
 import os
 import pickle
+import subprocess
 
 from .TASK_Generator import TaskGenerator
 from .DAG_Generator import DAG
@@ -45,7 +43,6 @@ class Generator:
             demand_range=self.demand_range
         )
         TaskGenerator(dag, 'ratatoskr/config/data.xml')     # Creates the relevant data.xml file in config dir
-
         for i in range(self.maps_per_task):                 # For multiple maps per task
             mapper = MapGenerator(
                 dag=dag, 
