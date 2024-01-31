@@ -147,7 +147,7 @@ def test():
     print(f"\n\nTotal Parameter count is { sum(p.numel() for p in model.parameters())}")
     print(model)
 
-test()
+# test()
 
 
 

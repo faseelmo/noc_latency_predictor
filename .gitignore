@@ -4,6 +4,7 @@ __pycache__/
 *.csv
 *.txt
 *.pkl
+*.xml
 *.pth
 *$py.class
 training_data/ratatoskr/BuffUsage
