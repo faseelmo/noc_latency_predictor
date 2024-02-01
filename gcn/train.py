@@ -11,7 +11,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 """Training Information """
-EPOCHS = 500
+EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LEARNING_RATE = 5e-4
 WEIGHT_DECAY = 0
@@ -24,7 +24,7 @@ NUM_NODES = 9
 
 """Load Model"""
 LOAD_MODEL = False
-MODEL_PATH = "results/"
+MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
@@ -66,14 +66,14 @@ def plot_and_save_loss(train_loss, valid_loss):
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig('current_model/validation_plot.png')
+    plt.savefig('gcn/current_model/validation_plot.png')
     plt.clf()
 
     loss_dict = {
         'train_loss' : train_loss,
         'valid_loss' : valid_loss,
     }
-    with open('current_model/loss_dict.pkl', 'wb') as file:
+    with open('gcn/current_model/loss_dict.pkl', 'wb') as file:
         pickle.dump(loss_dict, file)
 
 def main():
@@ -106,9 +106,9 @@ def main():
         plot_and_save_loss(train_loss_list, valid_loss_list)
 
         if (epoch+1) % 100 == 0:
-            torch.save(model.state_dict(), f'current_model/LatNet_{epoch+1}.pth')
+            torch.save(model.state_dict(), f'gcn/current_model/LatNet_{epoch+1}.pth')
 
-    torch.save(model.state_dict(), 'current_model/LatNet.pth')
+    torch.save(model.state_dict(), 'gcn/current_model/LatNet.pth')
     end_time = time.time()
     
     time_elapsed = (end_time - start_time) / 60
