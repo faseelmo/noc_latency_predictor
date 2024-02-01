@@ -136,9 +136,9 @@ class DAG:
             nx.draw_networkx_labels(self.graph, pos=self.position, labels=self.node_attr)  
         plt.show()
 
-def test(): 
-    dag = DAG(nodes=5)
-    print(f"Edge Attributes: \n{dag.edge_attr} ")
-    print(f"Node Attributes: \n{dag.node_attr} ")
-    dag.plot()
-test()
+# def test(): 
+#     dag = DAG(nodes=5)
+#     print(f"Edge Attributes: \n{dag.edge_attr} ")
+#     print(f"Node Attributes: \n{dag.node_attr} ")
+#     dag.plot()
+# test()

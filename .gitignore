@@ -4,11 +4,14 @@ __pycache__/
 *.csv
 *.txt
 *.pkl
+*.pickle
 *.xml
 *.pth
 *$py.class
 training_data/ratatoskr/BuffUsage
 training_data/ratatoskr/VCUsage
+training_data/ratatoskr/config
 training_data/data/
 training_data/.ipynb_checkpoints
 gcn/results/
+gcn/data/

@@ -3,15 +3,13 @@ Ratatoskr simulator depends on SystemC. If your machine dosent have systemC, you
 
 ```
 cd docker
-source download_sysc.sh
-docker build --no-cache -t systemc .
-docker run -ti systemc
+sudo python3 build.py
+sudo ./start.sh
+sudo ./attach.sh
 ```
-Once inside the docker container, you can clone this repo and then run the simulation.  
-When the simulation is done, you can copy the data from the docker container to the host machine using 
-```
-docker cp <container-id>:<container-path> <host-path>
-```
+
+To detach from the container press `Ctrl + P` followed by `Ctrl + Q`
+
 
 ### Training Data Generation 
 Generate a random task from a Directed Acyclic Graph, map those random tasks to network nodes, and then calculate network latency on Ratatoskr.   
