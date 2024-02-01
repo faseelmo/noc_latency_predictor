@@ -105,7 +105,7 @@ class CustomData(Dataset):
             distance = manhattan_distance(src_node_loc, dest_node_loc)
             distance_list.append(distance)
 
-        # distance_list = min_max_scaler(np.array(distance_list), 0, 4)
+        distance_list = min_max_scaler(np.array(distance_list), 0, 4)
         edge_attr = torch.tensor(distance_list).view(-1,1).float()
 
         """Target Label"""

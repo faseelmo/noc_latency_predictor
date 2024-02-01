@@ -20,14 +20,17 @@ ARCHITECTURE = [
     ('Conv', 1024),
     ('Conv', 512),
     ('Conv', 256),
+    ('Conv', 256),
+    ('Conv', 512),
+    ('Conv', 256),
     ('Conv', 128),
     ('Linear', 4096), 
     ('Linear', 1024), 
     ('Linear', 512), 
+    ('Linear', 512), 
+    ('Linear', 256), 
     ('Linear', 256), 
     ('Linear', 128), 
-    ('Linear', 64), 
-    ('Linear', 32), 
     ('Linear', 1), 
 ]
 
@@ -51,12 +54,13 @@ class FCN(nn.Module):
         self.linear = nn.Linear(in_nodes, out_nodes)
         if self.act:
             self.leakyrelu = nn.LeakyReLU(0.1)
-        # self.batchnorm = nn.BatchNorm1d(out_nodes)
+            self.batchnorm = nn.BatchNorm1d(out_nodes)
         """Do I have to do BatchNorm here?"""
 
     def forward(self, x): 
         if self.act:
-            return self.leakyrelu(self.linear(x))
+            return self.batchnorm(self.leakyrelu(self.linear(x)))
+            # return self.leakyrelu(self.linear(x))
         else: 
             return self.linear(x)
 

@@ -18,7 +18,7 @@ WEIGHT_DECAY = 0
 BATCH_SIZE = 128
 
 """Dataset Information """
-DATA_DIR = '../training_data/data/task_7'
+DATA_DIR = 'training_data/data/task_7_trained'
 INPUT_FEATURES = 4                                             #Node Level Features
 NUM_NODES = 9
 
@@ -91,7 +91,8 @@ def main():
         model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY
     )
 
-    loss_fn = nn.L1Loss()
+    loss_fn = nn.MSELoss()
+    # loss_fn = nn.L1Loss()
 
     valid_loss_list = []
     train_loss_list = []
