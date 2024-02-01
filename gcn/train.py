@@ -66,14 +66,14 @@ def plot_and_save_loss(train_loss, valid_loss):
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     plt.legend()
-    plt.savefig('validation_plot.png')
+    plt.savefig('current_model/validation_plot.png')
     plt.clf()
 
     loss_dict = {
         'train_loss' : train_loss,
         'valid_loss' : valid_loss,
     }
-    with open('loss_dict.pkl', 'wb') as file:
+    with open('current_model/loss_dict.pkl', 'wb') as file:
         pickle.dump(loss_dict, file)
 
 def main():
@@ -106,9 +106,9 @@ def main():
         plot_and_save_loss(train_loss_list, valid_loss_list)
 
         if (epoch+1) % 100 == 0:
-            torch.save(model.state_dict(), f'LatNet_{epoch+1}.pth')
+            torch.save(model.state_dict(), f'current_model/LatNet_{epoch+1}.pth')
 
-    torch.save(model.state_dict(), 'LatNet.pth')
+    torch.save(model.state_dict(), 'current_model/LatNet.pth')
     end_time = time.time()
     
     time_elapsed = (end_time - start_time) / 60
