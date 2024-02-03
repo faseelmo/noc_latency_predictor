@@ -4,7 +4,7 @@ import numpy as np
 import networkx as nx 
 from gcn.model import LatNet
 from torch_geometric.data import Data
-from gcn.utils import visGraph, manhattan_distance, net_4x4
+from gcn.utils import manhattan_distance, net_4x4
 from gcn.dataset import min_max_scaler
 
 NETWORK = net_4x4
