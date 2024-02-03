@@ -1,96 +1,52 @@
 """
- Code forked and modified from https://github.com/Livioni/DAG_Generator 
+ graph_generator() from https://github.com/Livioni/DAG_Generator
 """
 import random, math 
 import numpy as np 
+import uuid
 import matplotlib.pyplot as plt 
 import networkx as nx 
 
+# seed = 1
+# random.seed(seed)
+# np.random.seed(seed)
+
 class DAG:
-    def __init__(self, nodes, max_out = 3, alpha = 1.0, beta = 1.0, withDemand=False,  isLowDemand=False, isMediumDemand=False, isHighDemand=False, withDuration=False):
-        self.nodes = nodes 
+
+    def __init__(self, nodes, max_out = 3, alpha = 1.0, beta = 1.0, demand_range=(1,10)):
+        self.num_nodes = nodes  # Number of Non-Start and Non-Exit nodes
         self.max_out = max_out 
         self.alpha = alpha  
         self.beta = beta
-        self.duration = []
-        self.withDemand = withDemand
-        self.withDuration = withDuration
-        self.demand = []
         self.position = {'Start':(0,4),'Exit':(10,4)}
 
-        if withDemand:
-            self.getValidDemand(isLowDemand, isMediumDemand, isHighDemand)
+        graph = self.graph_generator()
 
-        self.generator()
-        print(self.duration)
+        low, high = demand_range
+        self.add_demand(graph, low, high)
+        self.add_delay(graph, low, high)
+        self.id = str(uuid.uuid4())
+        print(f"Created DAG ID us {self.id}")
 
-    
-    def getValidDemand(self, isLowDemand, isMediumDemand, isHighDemand):
-        
-        all_demand_true = (isLowDemand and isMediumDemand and isHighDemand)
+        self.graph = graph
+        self.edge_attr = nx.get_edge_attributes(graph, 'demand')
+        self.node_attr = nx.get_node_attributes(graph, 'delay')
 
-        #Condition to check if only one boolean is true. ^ -> XOR
-        if (isLowDemand ^ isMediumDemand ^ isHighDemand) and not all_demand_true:
-            if isLowDemand:
-                start_number, end_number = 1, 100
-            elif isMediumDemand:
-                start_number, end_number = 100, 300
-            elif isHighDemand:
-                start_number, end_number = 300, 500
+    def add_demand(self, graph, low=1, high=100): 
+        for (src, dest) in graph.edges:
+            graph[src][dest]['demand'] = random.randint(low,high)
 
-        elif not all_demand_true: # Condition where no demand criteria is mentioned
-            start_number, end_number = 1, 30
-        else: 
-            raise Exception("Multiple Demands True.")
+    def add_delay(self, graph, low=1, high=100): 
 
-        self.demand_range = (start_number, end_number)
-
-
-    def getRandomDemand(self, low_num, high_num):
-        mu = low_num + ((high_num - low_num) / 2 )
-        return abs(np.random.normal(mu, mu/5))
-
-
-    def generator(self):
-        '''Randomly generates a DAG task and randomly assigns its duration and (CPU, Memory) requirements'''
-        prob = 1
-        t = 10  # s   time unit
-        r = 100  # resource unit
-        self.DAGs_generate()
-
-        # Initialization Duration
-        for i in range(len(self.into_degree)):
-            if self.withDuration:
-                if random.random() < prob:
-                    # this condition is always true
-                    # duration.append(random.uniform(t,3*t))
-                    # self.duration.append(random.sample(range(0, 3 * t), 1)[0])
-                    self.duration.append(random.uniform(self.demand_range[0], self.demand_range[1]))
-                else:
-                    # duration.append(random.uniform(5*t,10*t))
-                    # self.duration.append(random.sample(range(5 * t, 10 * t), 1)[0])
-                    self.duration.append(random.uniform(self.demand_range[0], self.demand_range[1]))
+        for node in graph.nodes:
+            if node == 'Start' or node == 'Exit':
+                graph.nodes[node]['delay'] = 1
             else: 
-                self.duration.append(-1)
+                graph.nodes[node]['delay'] = random.randint(low, high)
 
-        # Initialize resource requirements
-        for i in range(len(self.into_degree)):
-            if self.withDemand:
-                if random.random() < 0.5:
-                    cpu_demand = random.uniform(self.demand_range[0], self.demand_range[1])
-                    mem_demand = random.uniform(0.05 * r, 0.01 * r)
-                    self.demand.append((cpu_demand, mem_demand))
-                else:
-                    cpu_demand = random.uniform(self.demand_range[0], self.demand_range[1])
-                    mem_demand = random.uniform(0.25 * r, 0.5 * r)
-                    self.demand.append((cpu_demand, mem_demand))
-            else: 
-                self.demand.append((1, 1))
+    def graph_generator(self):
 
-    
-    def DAGs_generate(self):
-
-        n = self.nodes 
+        n = self.num_nodes 
         max_out = self.max_out
         alpha = self.alpha
         beta = self.beta
@@ -98,7 +54,7 @@ class DAG:
         length = math.floor(math.sqrt(n)/alpha)
         mean_value = n/length
         random_num = np.random.normal(loc = mean_value, scale = beta,  size = (length,1))    
-        ###############################################division#############################################
+
         generate_num = 0
         dag_num = 1
         dag_list = [] 
@@ -137,7 +93,7 @@ class DAG:
             self.position['Start']=(0,max_pos/2)
             self.position['Exit']=(3*(length+1),max_pos/2)
 
-        ############################################link#####################################################
+        # Link
         into_degree = [0]*n            
         out_degree = [0]*n             
         edges = []                          
@@ -156,7 +112,7 @@ class DAG:
             pred += len(dag_list_update[i])
 
 
-        ######################################create start node and exit node################################
+        # Create start node and exit node
         for node,id in enumerate(into_degree):# Add entry nodes as father to all nodes with no entry edges
             if id ==0:
                 edges.append(('Start',node+1))
@@ -167,33 +123,22 @@ class DAG:
                 edges.append((node+1,'Exit'))
                 out_degree[node]+=1
 
-        #############################################plot###################################################
-        self.edges = edges
-        self.into_degree = into_degree
-        self.out_degree = out_degree
+        graph = nx.DiGraph()
+        graph.add_edges_from(edges)
 
-    def plot_DAG(self, g1, position):
-        # To do: Add labels to Nodes
-        # print(f"Position is {position}")
-        # print(f"Nodes is {g1.nodes}")
-        nx.draw_networkx(g1, arrows=True, pos=position)
-        plt.savefig("DAG.png", format="PNG")
-        return plt.clf
+        return graph 
 
-    def getInfo(self):
-        print(f"\nNo.of Nodes: {self.nodes}, No.of edges = {len(self.edges)}\n")
-        for i in range(self.nodes):
-            print(f"\nNode: {i+1} \nProcessing: Duration = {self.duration[i]}, \nRequire: CPU = {self.demand[i][0]}, Memory = {self.demand[i][1]}")
-        print("\nEdges")
-        print(self.edges)
-        print(f"\nInto Degree: {self.into_degree}")
-        print(f"Out Degree: {self.out_degree}")
-        print(f"Max Out: {self.max_out}")
-        print("\nDemand")
-        print(self.demand)
+    def plot(self, show_node_attrib=True):
+        node_labels = not show_node_attrib
+        nx.draw(self.graph,  pos=self.position, with_labels=node_labels,  font_weight='bold', node_color='skyblue', edge_color='gray', node_size=800)
+        nx.draw_networkx_edge_labels(self.graph, pos=self.position, edge_labels=self.edge_attr)
+        if show_node_attrib:
+            nx.draw_networkx_labels(self.graph, pos=self.position, labels=self.node_attr)  
+        plt.show()
 
-    def getGraph(self):
-        g1 = nx.DiGraph()
-        g1.add_edges_from(self.edges)
-        return g1
-
+# def test(): 
+#     dag = DAG(nodes=5)
+#     print(f"Edge Attributes: \n{dag.edge_attr} ")
+#     print(f"Node Attributes: \n{dag.node_attr} ")
+#     dag.plot()
+# test()

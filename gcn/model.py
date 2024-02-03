@@ -142,7 +142,7 @@ def test():
     """Testing on a Batch"""
     print("\n---- Testing on a Batch----")
     batch_size = 100
-    data_loader, _ = load_data('../training_data/data/task_7', batch_size)
+    data_loader, _ = load_data('training_data/data/task_7', batch_size)
     model = LatNet(4, 9)
 
     print(f"Data Loader size {len(data_loader)}")

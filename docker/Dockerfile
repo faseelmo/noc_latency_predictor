@@ -28,6 +28,8 @@ RUN apt-get install python3-pip -y \
 RUN mkdir -p /usr/local/
 WORKDIR /usr/local/
 
+RUN mkdir -p /home/noc_latency_predictor
+
 # Download systemc and unpack
 COPY systemc-$SYSTEMC_VERSION.tar.gz systemc-$SYSTEMC_VERSION.tar.gz
 RUN tar -xzf systemc-$SYSTEMC_VERSION.tar.gz
