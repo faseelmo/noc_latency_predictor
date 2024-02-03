@@ -54,7 +54,9 @@ total_simulation_count = data_generator.total_sim_count
 
 if all_gen:
     print(f"Total datapoint that'll be generated: {total_simulation_count*sim_iteration}")
-    data_generator.generate_all_dag()
+    for i in range(sim_iteration):
+        print(f"Iteartion {i+1}")
+        data_generator.generate_all_dag()
 else: 
     data_generator.generate()
 

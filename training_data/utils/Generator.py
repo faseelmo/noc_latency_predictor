@@ -26,11 +26,9 @@ class Generator:
 
     def generate_all_dag(self):
         for max_out in self.max_out_list:
-            print(f"    Simulating for max out: {max_out}")
             for alpha in self.alpha_list:
-                print(f"     Simulating for alpha: {alpha}")
                 for beta in self.beta_list:
-                    print(f"      Simulating for beta: {beta}")
+                    print(f" Simulating for max_out: {max_out}, alpha: {alpha}, beta: {beta}")
                     self.generate(dag_param=(max_out, alpha, beta))
 
     def generate(self, dag_param=(3, 1.0, 1.0)):

@@ -26,7 +26,7 @@ class DAG:
         self.add_demand(graph, low, high)
         self.add_delay(graph, low, high)
         self.id = str(uuid.uuid4())
-        print(f"Created DAG ID us {self.id}")
+        # print(f"Created DAG ID us {self.id}")
 
         self.graph = graph
         self.edge_attr = nx.get_edge_attributes(graph, 'demand')

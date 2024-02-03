@@ -1,1 +1,1 @@
-sudo docker attach data_gen
+docker attach data_gen

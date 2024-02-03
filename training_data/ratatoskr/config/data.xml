@@ -17,21 +17,49 @@
             <destination id="0">
               <delay min="0" max="0"/>
               <interval min="0" max="0"/>
-              <count min="76" max="76"/>
+              <count min="1" max="1"/>
               <type value="0"/>
               <task value="1"/>
             </destination>
             <destination id="1">
               <delay min="0" max="0"/>
               <interval min="0" max="0"/>
-              <count min="25" max="25"/>
+              <count min="1" max="1"/>
               <type value="0"/>
               <task value="2"/>
             </destination>
             <destination id="2">
               <delay min="0" max="0"/>
               <interval min="0" max="0"/>
-              <count min="36" max="36"/>
+              <count min="1" max="1"/>
+              <type value="0"/>
+              <task value="3"/>
+            </destination>
+            <destination id="3">
+              <delay min="0" max="0"/>
+              <interval min="0" max="0"/>
+              <count min="1" max="1"/>
+              <type value="0"/>
+              <task value="4"/>
+            </destination>
+            <destination id="4">
+              <delay min="0" max="0"/>
+              <interval min="0" max="0"/>
+              <count min="1" max="1"/>
+              <type value="0"/>
+              <task value="5"/>
+            </destination>
+            <destination id="5">
+              <delay min="0" max="0"/>
+              <interval min="0" max="0"/>
+              <count min="1" max="1"/>
+              <type value="0"/>
+              <task value="6"/>
+            </destination>
+            <destination id="6">
+              <delay min="0" max="0"/>
+              <interval min="0" max="0"/>
+              <count min="1" max="1"/>
               <type value="0"/>
               <task value="7"/>
             </destination>
@@ -43,53 +71,53 @@
       <start min="0" max="0"/>
       <duration min="-1" max="-1"/>
       <repeat min="1" max="1"/>
+      <requires>
+        <requirement id="0">
+          <type value="0"/>
+          <source value="0"/>
+          <count min="1" max="1"/>
+        </requirement>
+      </requires>
       <generates>
         <possibility id="0">
           <probability value="1"/>
           <destinations>
             <destination id="0">
-              <delay min="80" max="80"/>
+              <delay min="1" max="1"/>
               <interval min="0" max="0"/>
-              <count min="75" max="75"/>
+              <count min="1" max="1"/>
               <type value="0"/>
-              <task value="3"/>
+              <task value="8"/>
             </destination>
           </destinations>
         </possibility>
       </generates>
-      <requires>
-        <requirement id="0">
-          <type value="0"/>
-          <source value="0"/>
-          <count min="76" max="76"/>
-        </requirement>
-      </requires>
     </task>
     <task id="2">
       <start min="0" max="0"/>
       <duration min="-1" max="-1"/>
       <repeat min="1" max="1"/>
+      <requires>
+        <requirement id="0">
+          <type value="0"/>
+          <source value="0"/>
+          <count min="1" max="1"/>
+        </requirement>
+      </requires>
       <generates>
         <possibility id="0">
           <probability value="1"/>
           <destinations>
             <destination id="0">
-              <delay min="43" max="43"/>
+              <delay min="1" max="1"/>
               <interval min="0" max="0"/>
-              <count min="95" max="95"/>
+              <count min="1" max="1"/>
               <type value="0"/>
-              <task value="3"/>
+              <task value="8"/>
             </destination>
           </destinations>
         </possibility>
       </generates>
-      <requires>
-        <requirement id="0">
-          <type value="0"/>
-          <source value="0"/>
-          <count min="25" max="25"/>
-        </requirement>
-      </requires>
     </task>
     <task id="3">
       <start min="0" max="0"/>
@@ -98,13 +126,8 @@
       <requires>
         <requirement id="0">
           <type value="0"/>
-          <source value="1"/>
-          <count min="75" max="75"/>
-        </requirement>
-        <requirement id="1">
-          <type value="0"/>
-          <source value="2"/>
-          <count min="95" max="95"/>
+          <source value="0"/>
+          <count min="1" max="1"/>
         </requirement>
       </requires>
       <generates>
@@ -112,11 +135,11 @@
           <probability value="1"/>
           <destinations>
             <destination id="0">
-              <delay min="29" max="29"/>
+              <delay min="1" max="1"/>
               <interval min="0" max="0"/>
-              <count min="44" max="44"/>
+              <count min="1" max="1"/>
               <type value="0"/>
-              <task value="4"/>
+              <task value="8"/>
             </destination>
           </destinations>
         </possibility>
@@ -129,8 +152,8 @@
       <requires>
         <requirement id="0">
           <type value="0"/>
-          <source value="3"/>
-          <count min="44" max="44"/>
+          <source value="0"/>
+          <count min="1" max="1"/>
         </requirement>
       </requires>
       <generates>
@@ -138,11 +161,11 @@
           <probability value="1"/>
           <destinations>
             <destination id="0">
-              <delay min="81" max="81"/>
+              <delay min="1" max="1"/>
               <interval min="0" max="0"/>
-              <count min="51" max="51"/>
+              <count min="1" max="1"/>
               <type value="0"/>
-              <task value="5"/>
+              <task value="8"/>
             </destination>
           </destinations>
         </possibility>
@@ -155,8 +178,8 @@
       <requires>
         <requirement id="0">
           <type value="0"/>
-          <source value="4"/>
-          <count min="51" max="51"/>
+          <source value="0"/>
+          <count min="1" max="1"/>
         </requirement>
       </requires>
       <generates>
@@ -164,11 +187,11 @@
           <probability value="1"/>
           <destinations>
             <destination id="0">
-              <delay min="9" max="9"/>
+              <delay min="1" max="1"/>
               <interval min="0" max="0"/>
-              <count min="5" max="5"/>
+              <count min="1" max="1"/>
               <type value="0"/>
-              <task value="6"/>
+              <task value="8"/>
             </destination>
           </destinations>
         </possibility>
@@ -181,8 +204,8 @@
       <requires>
         <requirement id="0">
           <type value="0"/>
-          <source value="5"/>
-          <count min="5" max="5"/>
+          <source value="0"/>
+          <count min="1" max="1"/>
         </requirement>
       </requires>
       <generates>
@@ -190,9 +213,9 @@
           <probability value="1"/>
           <destinations>
             <destination id="0">
-              <delay min="61" max="61"/>
+              <delay min="1" max="1"/>
               <interval min="0" max="0"/>
-              <count min="73" max="73"/>
+              <count min="1" max="1"/>
               <type value="0"/>
               <task value="8"/>
             </destination>
@@ -208,7 +231,7 @@
         <requirement id="0">
           <type value="0"/>
           <source value="0"/>
-          <count min="36" max="36"/>
+          <count min="1" max="1"/>
         </requirement>
       </requires>
       <generates>
@@ -216,9 +239,9 @@
           <probability value="1"/>
           <destinations>
             <destination id="0">
-              <delay min="32" max="32"/>
+              <delay min="1" max="1"/>
               <interval min="0" max="0"/>
-              <count min="71" max="71"/>
+              <count min="1" max="1"/>
               <type value="0"/>
               <task value="8"/>
             </destination>
@@ -233,13 +256,38 @@
       <requires>
         <requirement id="0">
           <type value="0"/>
-          <source value="6"/>
-          <count min="73" max="73"/>
+          <source value="1"/>
+          <count min="1" max="1"/>
         </requirement>
         <requirement id="1">
           <type value="0"/>
+          <source value="2"/>
+          <count min="1" max="1"/>
+        </requirement>
+        <requirement id="2">
+          <type value="0"/>
+          <source value="3"/>
+          <count min="1" max="1"/>
+        </requirement>
+        <requirement id="3">
+          <type value="0"/>
+          <source value="4"/>
+          <count min="1" max="1"/>
+        </requirement>
+        <requirement id="4">
+          <type value="0"/>
+          <source value="5"/>
+          <count min="1" max="1"/>
+        </requirement>
+        <requirement id="5">
+          <type value="0"/>
+          <source value="6"/>
+          <count min="1" max="1"/>
+        </requirement>
+        <requirement id="6">
+          <type value="0"/>
           <source value="7"/>
-          <count min="71" max="71"/>
+          <count min="1" max="1"/>
         </requirement>
       </requires>
     </task>
