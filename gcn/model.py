@@ -111,7 +111,7 @@ class LatNet(nn.Module):
         return nn.Sequential(*layers)
 
 
-def test(): 
+if __name__ == "__main__":
     from .dataset import load_data
     print("\n---- Testing GCN Conv----")
     edge_index = torch.tensor([[0, 1, 1, 2],
@@ -154,7 +154,6 @@ def test():
     print(f"\n\nTotal Parameter count is { sum(p.numel() for p in model.parameters())}")
     print(model)
 
-# test()
 
 
 

@@ -122,10 +122,8 @@ class TaskGenerator:
 #     import sys
 #     sys.exit(0)
 
-# def test(): 
-#     from .DAG_Generator import DAG
-#     dag = DAG(nodes=4, max_out=2, demand_range=(1,100))
-#     task = TaskGenerator(dag, 'test_data.xml')
-#     dag.plot()
-
-# test()
+if __name__ == "__main__":
+    from .DAG_Generator import DAG
+    dag = DAG(nodes=4, max_out=2, demand_range=(1,100))
+    task = TaskGenerator(dag, 'test_data.xml')
+    dag.plot()

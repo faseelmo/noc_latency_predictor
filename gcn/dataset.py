@@ -144,9 +144,10 @@ def load_data(data_dir, batch_size=100):
 
     return train_loader, test_loader
 
-def test():
+if __name__ == "__main__":
     pickle_dir = '../training_data/data/task_7'
     dataset = CustomData(pickle_dir)
+
     print(f"Dataset size {len(dataset)}")
     data = dataset[3500]
     print(data)
@@ -154,7 +155,4 @@ def test():
     print(f"\nInput Feature is \n{data.x}")
     print(f"\nEdge Feature is \n{data.edge_attr}")
     print(f"\nOuput Label {data.y}")
-
     print(f"Nodes {data.node_attrs}")
-
-# test()

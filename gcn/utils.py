@@ -45,7 +45,6 @@ def visGraphGrid(edges, network_grid):
     plt.title('4x4 Grid Graph')
     plt.show()
 
-
 def visualize_pyG(data, pos=None):
     graph = nx.Graph()
     graph.add_nodes_from(range(data.num_nodes))
@@ -61,8 +60,6 @@ def visualize_pyG(data, pos=None):
         nx.draw_networkx_edge_labels(graph, pos, edge_labels=edge_labels)
         nx.draw(graph, pos,node_color='skyblue' , edgelist=data.edge_index.t().tolist())
     plt.show()
-
-
 
 def manhattan_distance(src,dst):
     x1, y1 = src

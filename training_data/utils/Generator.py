@@ -114,7 +114,6 @@ class Generator:
         with open(file_path, 'wb') as file:
             pickle.dump(result, file)
 
-
     def checkResultPath(self):
         if not os.path.exists(self.result_path):
             os.makedirs(self.result_path)
@@ -123,7 +122,6 @@ class Generator:
             print(f"Directory '{self.result_path}' already exists.")
             input("Press Enter to Proceed ")
 
-def test(): 
+if __name__ == "__main__": 
     gen = Generator(result_path= 'skraa', num_of_tasks=10, demand_range=(10,100))
     gen.generate_all_dag()
-# test()

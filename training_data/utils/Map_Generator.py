@@ -67,11 +67,9 @@ class MapGenerator:
             Map.addChild(bind_root, 'node', ['value'], [str(pe)])
         Map.writeFile(map_root)
             
-# def test(): 
-#     from .DAG_Generator import DAG
-#     dag = DAG(nodes=4, max_out=2, demand_range=(1,100))
-#     from .TASK_Generator import TaskGenerator
-#     task = TaskGenerator(dag, 'data.xml')
-#     map = MapGenerator(dag, network=4, file_location="test_map.xml")
-
-# test()
+if __name__ == "__main__":
+    from .DAG_Generator import DAG
+    from .TASK_Generator import TaskGenerator
+    dag = DAG(nodes=4, max_out=2, demand_range=(1,100))
+    task = TaskGenerator(dag, 'data.xml')
+    map = MapGenerator(dag, network=4, file_location="test_map.xml")
