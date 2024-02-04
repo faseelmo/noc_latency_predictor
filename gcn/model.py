@@ -43,7 +43,6 @@ class ConvBlock(nn.Module):
         self.conv = GCNConv(in_channels, out_channels, improved=True)
         self.leakyrelu = nn.LeakyReLU(0.1)
         self.batchnorm = nn.BatchNorm1d(out_channels)
-        
 
     def forward(self, x, edge_index, edge_attr):
         conv = self.conv(x, edge_index, edge_attr)
