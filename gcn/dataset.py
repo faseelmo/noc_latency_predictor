@@ -2,7 +2,9 @@ import os
 import pickle
 from natsort import natsorted
 
-# from .utils import *
+from .utils import *
+import sys
+sys.path.append('training_data')
 
 import torch 
 from torch_geometric.data import Data, Batch
@@ -28,11 +30,13 @@ class CustomData(Dataset):
         task_processing_time = data_dict['network_processing_time']
 
         task_graph = task_dag.graph
-        edge_index = torch.tensor(list(task_graph.edges)).t().contiguous()         
+        edge_index = list(task_graph.edges)
+        print(edge_index)
+        # edge_index = torch.tensor(list(task_graph.edges)).t().contiguous()         
 
-        """Target Label"""
-        target_label = torch.tensor([task_processing_time]).float()
-        data = Data(edge_index=edge_index, y=target_label)
+        # """Target Label"""
+        # target_label = torch.tensor([task_processing_time]).float()
+        # data = Data(edge_index=edge_index, y=target_label)
         
         """un-comment for debug"""
         # new_pos = utils.convertTaskPosToPygPos(data_dict['task_graph_pos'])
@@ -40,7 +44,8 @@ class CustomData(Dataset):
         # utils.visGraph(map_graph, pos=data_dict['map_graph_pos'])
         # utils.visualize_pyG(data, pos=new_pos)
 
-        return data
+        pass
+        # return data
 
 def custom_collate(data_list):
     return Batch.from_data_list(data_list)
