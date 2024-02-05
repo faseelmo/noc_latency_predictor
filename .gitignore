@@ -14,3 +14,5 @@ training_data/data/
 training_data/.ipynb_checkpoints
 gcn/results/
 gcn/data/
+training_data/ratatoskr/config/data.xml
+training_data/ratatoskr/config/map.xml
