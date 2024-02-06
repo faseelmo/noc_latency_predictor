@@ -31,13 +31,16 @@ class CustomData(Dataset):
 
         task_graph = task_dag.graph
         edge_index = list(task_graph.edges)
-        num_of_tasks = len(task_graph.nodes) - 1
         
-        converted_edge_index = self.convert_edge_index(edge_index, num_of_tasks)
+        total_tasks = len(task_graph.nodes)
+        last_task = len(task_graph.nodes) - 1
+        
+        converted_edge_index = self.convert_edge_index(edge_index, last_task)
         converted_edge_index_torch = torch.tensor(converted_edge_index, dtype=torch.int).t().contiguous()
 
-        data = Data(edge_index=converted_edge_index_torch, y=target_value)
-        data.num_nodes = num_of_tasks + 1
+        dummy_input = torch.ones(total_tasks)
+        data = Data(x=dummy_input,edge_index=converted_edge_index_torch, y=target_value)
+        # data.num_nodes = num_of_tasks + 1
 
 
         # """Target Label"""

@@ -157,7 +157,7 @@ def main():
 
         plot_and_save_loss(train_loss_list, valid_loss_list)
 
-        if (epoch+1) % 100 == 0:
+        if (epoch+1) % 10 == 0:
             torch.save(model, f'{SAVE_RESULTS}/LatNet_{epoch+1}.pth')
             end_time = time.time()
             time_elapsed = (end_time - start_time) / 60
