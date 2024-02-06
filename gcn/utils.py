@@ -52,8 +52,9 @@ def visualize_pyG(data, pos=None):
 
     if pos is None: pos = nx.spring_layout(graph)  
 
-    node_features = {node: f"R: {data['x'][node].tolist()[0]:.0f}\nD: {data['x'][node].tolist()[1]:.0f}" for node in graph.nodes}
-    nx.draw(graph, pos, with_labels=True, labels=node_features, node_size=700, node_color='skyblue', font_size=10, font_color='black', font_weight='bold', arrowsize=20)  
+    # node_features = {node: f"R: {data['x'][node].tolist()[0]:.0f}\nD: {data['x'][node].tolist()[1]:.0f}" for node in graph.nodes}
+    # nx.draw(graph, pos, with_labels=True, labels=node_features, node_size=700, node_color='skyblue', font_size=10, font_color='black', font_weight='bold', arrowsize=20)  
+    nx.draw(graph, pos, with_labels=True, node_size=700, node_color='skyblue', font_size=10, font_color='black', font_weight='bold', arrowsize=20)  
 
     if 'edge_attr' in data:
         edge_labels = {tuple(e): str(int(attr.item())) for e, attr in zip(data.edge_index.t().tolist(), data.edge_attr)}

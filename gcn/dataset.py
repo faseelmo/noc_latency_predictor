@@ -26,13 +26,19 @@ class CustomData(Dataset):
             data_dict = pickle.load(file)
 
         task_dag = data_dict['task_dag']
-        # map_graph = data_dict['map']
-        task_processing_time = data_dict['network_processing_time']
+        task_processing_time = float(data_dict['network_processing_time'])
+        target_value = torch.tensor([task_processing_time]).float()
 
         task_graph = task_dag.graph
         edge_index = list(task_graph.edges)
-        print(edge_index)
-        # edge_index = torch.tensor(list(task_graph.edges)).t().contiguous()         
+        num_of_tasks = len(task_graph.nodes) - 1
+        
+        converted_edge_index = self.convert_edge_index(edge_index, num_of_tasks)
+        converted_edge_index_torch = torch.tensor(converted_edge_index, dtype=torch.int).t().contiguous()
+
+        data = Data(edge_index=converted_edge_index_torch, y=target_value)
+        data.num_nodes = num_of_tasks + 1
+
 
         # """Target Label"""
         # target_label = torch.tensor([task_processing_time]).float()
@@ -42,10 +48,28 @@ class CustomData(Dataset):
         # new_pos = utils.convertTaskPosToPygPos(data_dict['task_graph_pos'])
         # utils.visGraph(task_graph, pos=data_dict['task_graph_pos'])
         # utils.visGraph(map_graph, pos=data_dict['map_graph_pos'])
-        # utils.visualize_pyG(data, pos=new_pos)
+        # # printask_t(dag.pitionos)
+        # visualize_pyG(data)
+        # task_dag.plot(show_node_attrib=False)
 
-        pass
-        # return data
+
+        # pass
+        return data
+
+    def convert_edge_index(self, edge_index, num_of_tasks):
+        converted_edge_index = []
+        node_mapping = {'Start': 0, 'Exit': num_of_tasks}
+
+        for src, dest in edge_index:
+            if src == 'Start':
+                src = node_mapping[src]
+
+            if dest == 'Exit':
+                dest = node_mapping[dest]
+
+            converted_edge_index.append((src, dest))
+
+        return converted_edge_index
 
 def custom_collate(data_list):
     return Batch.from_data_list(data_list)
@@ -72,14 +96,15 @@ def load_data(data_dir, batch_size=100):
     return train_loader, test_loader
 
 if __name__ == "__main__":
-    pickle_dir = 'training_data/data/task_7'
+    pickle_dir = 'training_data/data/training_data'
     dataset = CustomData(pickle_dir)
 
     print(f"Dataset size {len(dataset)}")
     data = dataset[3500]
-    print(data)
+    print(type(data))
 
-    # print(f"\nInput Feature is \n{data.x}")
-    # print(f"\nEdge Feature is \n{data.edge_attr}")
-    # print(f"\nOuput Label {data.y}")
-    # print(f"Nodes {data.node_attrs}")
+    print(f"Graph is Valid: {data.validate(raise_on_error=True)}")
+    print(f"Input Feature is \n{data.x}")
+    print(f"\nEdge Feature is \n{data.edge_attr}")
+    print(f"\nOuput Label {data.y}")
+    print(f"\nNodes {data.node_attrs}")
