@@ -12,25 +12,9 @@ Architecture:
 # torch.manual_seed(1)
 
 ARCHITECTURE = [
-    ('Conv',  128),
-    ('Conv', 256),
-    ('Conv', 128),
-    ('Conv', 64),
-    # ('Conv', 2048),
-    # ('Conv', 1024),
-    # ('Conv', 512),
-    # ('Conv', 256),
-    # ('Conv', 256),
-    # ('Conv', 512),
-    # ('Conv', 256),
-    # ('Conv', 128),
-    # ('Linear', 4096), 
-    # ('Linear', 1024), 
-    # ('Linear', 1024), 
-    # ('Linear', 512), 
-    # ('Linear', 512), 
-    # ('Linear', 256), 
-    # ('Linear', 256), 
+    ('Conv',  32),
+    ('Conv', 32),
+    ('Conv', 32),
     ('Linear', 128), 
     ('Linear', 64), 
     ('Linear', 32), 
@@ -44,8 +28,8 @@ class ConvBlock(nn.Module):
         self.leakyrelu = nn.LeakyReLU(0.1)
         self.batchnorm = nn.BatchNorm1d(out_channels)
 
-    def forward(self, x, edge_index, edge_attr):
-        conv = self.conv(x, edge_index, edge_attr)
+    def forward(self, x, edge_index):
+        conv = self.conv(x, edge_index)
         return self.batchnorm(self.leakyrelu(conv))
         # return self.leakyrelu(conv)
 
@@ -67,18 +51,29 @@ class FCN(nn.Module):
             return self.linear(x)
 
 class LatNet(nn.Module):
-    def __init__(self, in_features, num_nodes):
+    def __init__(self, num_nodes, hidden_size):
         super(LatNet, self).__init__()
         self.num_nodes = num_nodes
-        self.in_features = in_features
+        self.hidden_size = hidden_size
+
+        # hidden size is the embedding dim
+        self.node_embedding = nn.Embedding(num_nodes, hidden_size)
+        nn.init.normal_(self.node_embedding.weight, std=0.1)
+
         self.architecture = ARCHITECTURE
         self.layers = self._create_layers(self.architecture)
 
     def forward(self, data): 
-        x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
+        x = self.node_embedding.weight
+        edge_index = data.edge_index
+        # print(f"Time to go forward")
         for layer in self.layers:
+
+            # print(f"Inside layer lol")
             if isinstance(layer, ConvBlock):
-                x = layer(x, edge_index, edge_attr)
+                print(f"\nNew Input X is {x.shape}")
+                x = layer(x, edge_index)
+                print(f"Output shape is {x.shape}")
 
             if isinstance(layer, FCN):
                 x = layer(x.view(-1, layer.linear.in_features))
@@ -87,7 +82,7 @@ class LatNet(nn.Module):
 
     def _create_layers(self, architecture):
         layers = []
-        in_channels = self.in_features
+        in_channels = self.hidden_size
         first_fcn_flag = True
 
         for idx, module in enumerate(architecture):
@@ -112,48 +107,48 @@ class LatNet(nn.Module):
 
 
 if __name__ == "__main__":
+    device = torch.device('cpu')
+    model = LatNet(9, 16).to(device)
+    learn_model_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total_params = sum(p.numel() for p in model.parameters())
+    print(f"Number of Learnable parameters: {learn_model_parameters}, Total Param: {total_params}")
+
     from .dataset import load_data
-    print("\n---- Testing GCN Conv----")
-    edge_index = torch.tensor([[0, 1, 1, 2],
-                               [1, 0, 2, 1]], dtype=torch.long)
-    x = torch.tensor([[-1, 2, 3, 1, 1, 1, 1, 1], 
-                      [-1, 2, 3, 1, 1, 1, 1, 1], 
-                      [-1, 2, 3, 1, 1, 1, 1, 1]], dtype=torch.float)
-
-    edge_attr = torch.randn((edge_index.size(1), 1), dtype=torch.float) # should only contain +ve values
-
-    test_data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
-    test_conv_block = ConvBlock(8, 5)
-    output_conv_block = test_conv_block(
-        test_data.x, test_data.edge_index, test_data.edge_attr
-    )
-    print(f"Conv Block Output is {output_conv_block}")
-
-    print("\n---- Testing FCN----")
-    test_fcn = FCN(100,10)
-    test_input = torch.randn(10, 100)
-    print(f"Test Output is {test_fcn(test_input)}")
-
-    print("\n---- Testing the final Model----")
-    # model = LatNet(8, 3)
-    # print(f"Model Output for single value {model(test_data)}")
-
-    """Testing on a Batch"""
-    print("\n---- Testing on a Batch----")
-    batch_size = 100
-    data_loader, _ = load_data('training_data/data/task_7', batch_size)
-    model = LatNet(4, 9)
-
-    print(f"Data Loader size {len(data_loader)}")
+    data_loader, _ = load_data('training_data/data/training_data', batch_size=2)
     data_iter = iter(data_loader)
     first_batch = next(data_iter)
 
-    output = model(first_batch)
-    # print(f"Input type is {type(first_batch)}")
-    # print(f"Output type is {type(output)}")
-    print(f"\n\nTotal Parameter count is { sum(p.numel() for p in model.parameters())}")
-    print(model)
+    # print(first_batch[0])
+    # print(first_batch)
+    # output = model(first_batch.to(device))
+    # print(f"Output of the model is {output}")
+    
+    """
+    Testing Conv for Batches
+    """
+
+    embedding_dim = 16
+    conv_model = ConvBlock(embedding_dim,2)
+    
+    # For single data
+    first_data = first_batch[0]
+    first_data_edge_index = first_data.edge_index
+    embedding = nn.Embedding(9, embedding_dim)
+    nn.init.normal_(embedding.weight, std=0.1)
+    
+    print(f"\nSingle Data is {first_data}")
+    print(f"Embedding shape {embedding.weight.shape}")
+    conv_model(embedding.weight ,first_data_edge_index)
+
+    # For Batch
+    first_batch_edge_index = first_batch.edge_index
+    embedding = nn.Embedding(18, embedding_dim)
+    nn.init.normal_(embedding.weight, std=0.1)
+    
+    print(f"\nBatch Data is {first_batch}")
+    print(f"Embedding shape {embedding.weight.shape}")
+    conv_model(embedding.weight, first_batch_edge_index)
 
 
-
+    # print(model)
 

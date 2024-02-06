@@ -16,11 +16,11 @@ EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 LEARNING_RATE = 5e-4
 WEIGHT_DECAY = 0
-BATCH_SIZE = 128
+BATCH_SIZE = 1
 
 """Dataset Information """
-DATA_DIR = 'training_data/data/task_7'
-INPUT_FEATURES = 4                                             #Node Level Features
+DATA_DIR = 'training_data/data/training_data'
+# INPUT_FEATURES = 4                                             #Node Level Features
 NUM_NODES = 9
 
 """Load Model"""
@@ -29,7 +29,7 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/3_gcn_7/"
+SAVE_RESULTS = "gcn/new_model/"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
@@ -126,7 +126,8 @@ def main():
     start_time = time.time()
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
 
-    model = LatNet(INPUT_FEATURES, NUM_NODES).to(DEVICE)
+    hidden_size = 16
+    model = LatNet(NUM_NODES, hidden_size=hidden_size).to(DEVICE)
 
     print(f"Learning Rate is {LEARNING_RATE}")
 
