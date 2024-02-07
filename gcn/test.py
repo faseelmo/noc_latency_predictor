@@ -15,7 +15,7 @@ NUM_NODES = 9
 
 """Load Model"""
 # 1100 -> Best Model yet
-MODEL_PATH = "gcn/new_model/LatNet_1150.pth"
+MODEL_PATH = "gcn/results/new_model/LatNet_1150.pth"
 
 torch.manual_seed(1)
 
