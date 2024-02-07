@@ -38,7 +38,7 @@ class CustomData(Dataset):
         converted_edge_index = self.convert_edge_index(edge_index, last_task)
         converted_edge_index_torch = torch.tensor(converted_edge_index, dtype=torch.int).t().contiguous()
 
-        dummy_input = torch.ones(total_tasks)
+        dummy_input = torch.ones(total_tasks).view(-1,1)
         data = Data(x=dummy_input,edge_index=converted_edge_index_torch, y=target_value)
         # data.num_nodes = num_of_tasks + 1
 
@@ -83,31 +83,31 @@ def min_max_scaler(x, min, max):
 
 def load_data(data_dir, batch_size=100):
     dataset = CustomData(data_dir)
-    test_size = int(0.1 * len(dataset))
+    valid_size = int(0.1 * len(dataset))
     train_dataset, test_dataset = random_split(
-        dataset, [len(dataset) - test_size, test_size] 
+        dataset, [len(dataset) - valid_size, valid_size] 
     )
 
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, 
         drop_last=True, collate_fn=custom_collate
     )
-    test_loader = DataLoader(
+    valid_loader = DataLoader(
         test_dataset, batch_size=batch_size, shuffle=True, 
         drop_last=True, collate_fn=custom_collate)
 
-    return train_loader, test_loader
+    return train_loader, valid_loader
 
 if __name__ == "__main__":
     pickle_dir = 'training_data/data/training_data'
     dataset = CustomData(pickle_dir)
 
     print(f"Dataset size {len(dataset)}")
-    data = dataset[3500]
+    data = dataset[100]
     print(type(data))
 
     print(f"Graph is Valid: {data.validate(raise_on_error=True)}")
-    print(f"Input Feature is \n{data.x}")
+    print(f"Input Feature ({data.x.shape})is \n{data.x}")
     print(f"\nEdge Feature is \n{data.edge_attr}")
     print(f"\nOuput Label {data.y}")
     print(f"\nNodes {data.node_attrs}")

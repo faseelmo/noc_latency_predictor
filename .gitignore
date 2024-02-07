@@ -13,4 +13,5 @@ training_data/ratatoskr/VCUsage
 training_data/data/
 training_data/.ipynb_checkpoints
 gcn/results/
+gcn/new_model/
 gcn/data/

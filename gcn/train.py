@@ -14,13 +14,12 @@ import matplotlib.pyplot as plt
 """Training Information """
 EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-LEARNING_RATE = 5e-4
 WEIGHT_DECAY = 0
-BATCH_SIZE = 1
+BATCH_SIZE = 128
 
 """Dataset Information """
 DATA_DIR = 'training_data/data/training_data'
-# INPUT_FEATURES = 4                                             #Node Level Features
+INPUT_FEATURES = 1                                             #Node Level Features
 NUM_NODES = 9
 
 """Load Model"""
@@ -54,42 +53,6 @@ def train_fn(train_loader, model, optimizer, loss_fn):
 
     train_loss = sum(mean_loss)/len(mean_loss) 
     return train_loss
-
-def test_fn(test_loader, model, data_set, num_examples=10):
-    pred_list = []
-    label_list = []
-    error_list = []
-    for idx, data in enumerate(test_loader):
-        data = data.to(DEVICE)
-
-        output = model(data).to(DEVICE).item()
-        ground_truth = data.y.item()
-        error = abs(ground_truth-output)
-
-        pred_list.append(output)
-        label_list.append(ground_truth)
-        error_list.append(error)
-
-    plot_test(pred_list, label_list, name="test_results")
-    
-def plot_test(pred_list, label_list, error_list):
-    fig, ax = plt.subplots()
-    ax.scatter(range(len(pred_list)), pred_list, label='Prediction', color='blue', marker='o')
-    ax.scatter(range(len(label_list)), label_list, label='Label', color='red', marker='^')
-    ax.set_xlabel('Index')
-    ax.set_ylabel('Latency')
-    ax.legend(loc='upper left')
-    ax.grid(True)
-    ax.set_ylim(500, 17500)
-
-    ax2 = ax.twinx()
-    ax2.bar(range(len(error_list)), error_list, alpha=0.5, color='green', label='Error')
-    ax2.set_ylabel('Error')
-    ax2.legend(loc='upper right')
-    plt.show()
-
-    plt.savefig(f'{SAVE_RESULTS}/validation_plot_log.png')
-    plt.clf()
 
 def validation_fn(test_loader, model, loss_fn, epoch):
     mean_loss = []
@@ -126,11 +89,9 @@ def main():
     start_time = time.time()
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
 
-    hidden_size = 16
-    model = LatNet(NUM_NODES, hidden_size=hidden_size).to(DEVICE)
+    model = LatNet(NUM_NODES, INPUT_FEATURES).to(DEVICE)
 
-    print(f"Learning Rate is {LEARNING_RATE}")
-
+    learning_rate = 2e-4
 
     if LOAD_MODEL:
         model_state_dict = torch.load(MODEL_PATH)
@@ -139,12 +100,12 @@ def main():
 
     optimizer = optim.Adam(
         model.parameters(), 
-        lr=LEARNING_RATE, 
+        lr=learning_rate, 
         weight_decay=WEIGHT_DECAY
     )
 
-    # loss_fn = nn.MSELoss()
-    loss_fn = nn.L1Loss()
+    loss_fn = nn.MSELoss()
+    # loss_fn = nn.L1Loss()
 
     valid_loss_list = []
     train_loss_list = []
@@ -154,10 +115,21 @@ def main():
 
         train_loss_list.append(train_loss)
         valid_loss_list.append(valid_loss)
-
         plot_and_save_loss(train_loss_list, valid_loss_list)
 
-        if (epoch+1) % 10 == 0:
+        # if (epoch+1) == 2: 
+        #     learning_rate = 5e-5
+        #     print(f"Learning Rate Changed to {learning_rate}")
+
+        # if (epoch+1) == 8: 
+        #     learning_rate = 1e-5
+        #     print(f"Learning Rate Changed to {learning_rate}")
+
+        # if (epoch+1) == 10: 
+        #     learning_rate = 5e-6
+        #     print(f"Learning Rate Changed to {learning_rate}")
+
+        if (epoch+1) % 50 == 0:
             torch.save(model, f'{SAVE_RESULTS}/LatNet_{epoch+1}.pth')
             end_time = time.time()
             time_elapsed = (end_time - start_time) / 60

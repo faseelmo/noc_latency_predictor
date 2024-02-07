@@ -12,9 +12,11 @@ Architecture:
 # torch.manual_seed(1)
 
 ARCHITECTURE = [
-    ('Conv',  32),
-    ('Conv', 32),
-    ('Conv', 32),
+    ('Conv',  128),
+    ('Conv', 256),
+    ('Conv', 128),
+    # ('Linear', 512), 
+    ('Linear', 256), 
     ('Linear', 128), 
     ('Linear', 64), 
     ('Linear', 32), 
@@ -24,14 +26,14 @@ ARCHITECTURE = [
 class ConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels): 
         super(ConvBlock, self).__init__()
-        self.conv = GCNConv(in_channels, out_channels, improved=True)
+        self.conv = GCNConv(in_channels, out_channels)
         self.leakyrelu = nn.LeakyReLU(0.1)
-        self.batchnorm = nn.BatchNorm1d(out_channels)
+        # self.batchnorm = nn.BatchNorm1d(out_channels)
 
     def forward(self, x, edge_index):
         conv = self.conv(x, edge_index)
-        return self.batchnorm(self.leakyrelu(conv))
-        # return self.leakyrelu(conv)
+        # return self.batchnorm(self.leakyrelu(conv))
+        return self.leakyrelu(conv)
 
 class FCN(nn.Module):
     def __init__(self, in_nodes, out_nodes, act=True):
@@ -40,7 +42,7 @@ class FCN(nn.Module):
         self.linear = nn.Linear(in_nodes, out_nodes)
         if self.act:
             self.leakyrelu = nn.LeakyReLU(0.1)
-            self.batchnorm = nn.BatchNorm1d(out_nodes)
+            # self.batchnorm = nn.BatchNorm1d(out_nodes)
         """Do I have to do BatchNorm here?"""
 
     def forward(self, x): 
@@ -51,31 +53,16 @@ class FCN(nn.Module):
             return self.linear(x)
 
 class LatNet(nn.Module):
-    def __init__(self, num_nodes, hidden_size):
+    def __init__(self, num_nodes, in_features):
         super(LatNet, self).__init__()
         self.num_nodes = num_nodes
-        self.hidden_size = 9
-        num_times = 2
-
-        # hidden size is the embedding dim
-        self.node_embedding = nn.Embedding(num_nodes, hidden_size)
-        nn.init.normal_(self.node_embedding.weight, std=0.1)
-        print(f"Shape of embedding is {self.node_embedding.weight.shape}")
-
-        self.input_x = torch.sparse.torch.eye(num_nodes)
-        self.input_x = torch.cat([self.input_x ] * num_times, dim=0)
-        print(f"Shape of input is {self.input_x.shape}")
-        # import sys
-        # sys.exit(0)
+        self.in_features = in_features
 
         self.architecture = ARCHITECTURE
         self.layers = self._create_layers(self.architecture)
 
     def forward(self, data): 
-        # x = self.node_embedding.weight
-        x = self.input_x
-        edge_index = data.edge_index
-        # print(f"Time to go forward")
+        x, edge_index = data.x, data.edge_index
         for layer in self.layers:
 
             if isinstance(layer, ConvBlock):
@@ -88,7 +75,7 @@ class LatNet(nn.Module):
 
     def _create_layers(self, architecture):
         layers = []
-        in_channels = self.hidden_size
+        in_channels = self.in_features
         first_fcn_flag = True
 
         for idx, module in enumerate(architecture):
@@ -115,13 +102,13 @@ class LatNet(nn.Module):
 if __name__ == "__main__":
     
     from .dataset import load_data
-    batch_size = 1
-    data_loader, _ = load_data('training_data/data/training_data', batch_size=batch_size)
+    batch_size = 10
+    data_loader, _, _ = load_data('training_data/data/training_data', batch_size=batch_size)
     data_iter = iter(data_loader)
     first_batch = next(data_iter)
 
     device = torch.device('cpu')
-    model = LatNet(9, 16).to(device)
+    model = LatNet(9, 1).to(device)
     learn_model_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Number of Learnable parameters: {learn_model_parameters}, Total Param: {total_params}")
