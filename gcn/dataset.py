@@ -35,7 +35,7 @@ class CustomData(Dataset):
         total_tasks = len(task_graph.nodes)
         last_task = len(task_graph.nodes) - 1
         
-        converted_edge_index = self.convert_edge_index(edge_index, last_task)
+        converted_edge_index = convert_edge_index(edge_index, last_task)
         converted_edge_index_torch = torch.tensor(converted_edge_index, dtype=torch.int).t().contiguous()
 
         dummy_input = torch.ones(total_tasks).view(-1,1)
@@ -59,20 +59,20 @@ class CustomData(Dataset):
         # pass
         return data
 
-    def convert_edge_index(self, edge_index, num_of_tasks):
-        converted_edge_index = []
-        node_mapping = {'Start': 0, 'Exit': num_of_tasks}
+def convert_edge_index(edge_index, num_of_tasks):
+    converted_edge_index = []
+    node_mapping = {'Start': 0, 'Exit': num_of_tasks}
 
-        for src, dest in edge_index:
-            if src == 'Start':
-                src = node_mapping[src]
+    for src, dest in edge_index:
+        if src == 'Start':
+            src = node_mapping[src]
 
-            if dest == 'Exit':
-                dest = node_mapping[dest]
+        if dest == 'Exit':
+            dest = node_mapping[dest]
 
-            converted_edge_index.append((src, dest))
+        converted_edge_index.append((src, dest))
 
-        return converted_edge_index
+    return converted_edge_index
 
 def custom_collate(data_list):
     return Batch.from_data_list(data_list)

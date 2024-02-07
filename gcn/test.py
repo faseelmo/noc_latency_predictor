@@ -1,12 +1,6 @@
 import torch 
 import torch.nn as nn 
-
-from .model import LatNet
 from .dataset import load_data
-
-import time
-import pickle
-from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 """Training Information """
@@ -20,7 +14,8 @@ INPUT_FEATURES = 4 #Node Level Features
 NUM_NODES = 9
 
 """Load Model"""
-MODEL_PATH = "gcn/new_model/LatNet_1100.pth"
+# 1100 -> Best Model yet
+MODEL_PATH = "gcn/new_model/LatNet_1150.pth"
 
 torch.manual_seed(1)
 
