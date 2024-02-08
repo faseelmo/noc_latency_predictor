@@ -136,6 +136,9 @@ class DAG:
             nx.draw_networkx_labels(self.graph, pos=self.position, labels=self.node_attr)  
         plt.show()
 
+    def is_isomorphic(self, graph): 
+        return nx.is_isomorphic(self.graph, graph)
+
 if __name__ == "__main__": 
     dag = DAG(nodes=5)
     print(f"Edge Attributes: \n{dag.edge_attr} ")

@@ -22,6 +22,9 @@ class Generator:
         self.maps_per_task = maps_per_task
         self.total_sim_count = len(self.max_out_list) * len(self.alpha_list) * len(self.beta_list) * maps_per_task
 
+        with open('utils/graph.pkl', 'rb') as file:
+            self.most_freq_graph = pickle.load(file)
+
         self.checkResultPath()
 
     def generate_all_dag(self):
@@ -40,6 +43,11 @@ class Generator:
             beta=beta, 
             demand_range=self.demand_range
         )
+
+        if dag.is_isomorphic(self.most_freq_graph): 
+            print("Found Most Occuring Graph. Skipping Process")
+            return
+
         TaskGenerator(dag, 'ratatoskr/config/data.xml')     # Creates the relevant data.xml file in config dir
         for i in range(self.maps_per_task):                 # For multiple maps per task
             mapper = MapGenerator(
