@@ -18,7 +18,8 @@ class MapGenerator:
         
     def doMap(self, num_of_tasks, list_of_pe):
         """
-            Return a dict "task_ corresponding_p.e"
+            Return a dict 
+                {task: corresponding_p.e}
         """
         map_ = {} 
         for i in range(num_of_tasks):
