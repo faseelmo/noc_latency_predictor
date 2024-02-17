@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn 
 import torch.optim as optim 
 
-from .model import LatNet
+from .model import GCN
 from .dataset import load_data
 
 import os 
@@ -89,9 +89,9 @@ def main():
     start_time = time.time()
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
 
-    model = LatNet(NUM_NODES, INPUT_FEATURES).to(DEVICE)
+    model = GCN(INPUT_FEATURES).to(DEVICE)
 
-    learning_rate = 2e-4
+    learning_rate = 5e-4
 
     if LOAD_MODEL:
         model_state_dict = torch.load(MODEL_PATH)

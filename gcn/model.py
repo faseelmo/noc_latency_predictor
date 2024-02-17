@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch_geometric.data import Data
+import torch.nn.functional as F
 from torch_geometric.nn import GCNConv
 
 
@@ -23,90 +24,45 @@ ARCHITECTURE = [
     ('Linear', 1), 
 ]
 
-class ConvBlock(nn.Module):
-    def __init__(self, in_channels, out_channels): 
-        super(ConvBlock, self).__init__()
-        self.conv = GCNConv(in_channels, out_channels)
-        self.leakyrelu = nn.LeakyReLU(0.1)
-        # self.batchnorm = nn.BatchNorm1d(out_channels)
+class GCN(nn.Module):
+    def __init__(self, num_features, hidden_size_1=256, hidden_size_2=512, hidden_size_3=256):
+        super(GCN, self).__init__()
 
-    def forward(self, x, edge_index):
-        conv = self.conv(x, edge_index)
-        # return self.batchnorm(self.leakyrelu(conv))
-        return self.leakyrelu(conv)
+        # Define the three graph convolutional layers
+        self.conv1 = GCNConv(num_features, hidden_size_1)
+        self.conv2 = GCNConv(hidden_size_1, hidden_size_2)
+        self.conv3 = GCNConv(hidden_size_2, hidden_size_3)
 
-class FCN(nn.Module):
-    def __init__(self, in_nodes, out_nodes, act=True):
-        super(FCN, self).__init__()
-        self.act = act
-        self.linear = nn.Linear(in_nodes, out_nodes)
-        if self.act:
-            self.leakyrelu = nn.LeakyReLU(0.1)
-            # self.batchnorm = nn.BatchNorm1d(out_nodes)
-        """Do I have to do BatchNorm here?"""
+        # Fully connected layers for regression
+        self.fc1 = nn.Linear(hidden_size_3, 128)
+        self.fc2 = nn.Linear(128, 64)
+        self.fc3 = nn.Linear(64, 1)  # Output layer for regression
 
-    def forward(self, x): 
-        if self.act:
-            # return self.batchnorm(self.leakyrelu(self.linear(x)))
-            return self.leakyrelu(self.linear(x))
-        else: 
-            return self.linear(x)
-
-class LatNet(nn.Module):
-    def __init__(self, num_nodes, in_features):
-        super(LatNet, self).__init__()
-        self.num_nodes = num_nodes
-        self.in_features = in_features
-
-        self.architecture = ARCHITECTURE
-        self.layers = self._create_layers(self.architecture)
-
-    def forward(self, data): 
+    def forward(self, data):
+        # Apply the first graph convolutional layer
         x, edge_index = data.x, data.edge_index
-        # print("Input size:", x.size())  # Add this line to print the size of x
-        for layer in self.layers:
+        x = F.relu(self.conv1(x, edge_index))
+        
+        # Apply the second graph convolutional layer
+        x = F.relu(self.conv2(x, edge_index))
 
-            if isinstance(layer, ConvBlock):
-                x = layer(x, edge_index)
-                # print("ConvBlock output is :", x.size())
+        # Apply the third graph convolutional layer
+        x = F.relu(self.conv3(x, edge_index))
 
-            if isinstance(layer, FCN):
-                x = layer(x.view(-1, layer.linear.in_features))
+        # Global pooling (e.g., mean) to aggregate node features
+        x = torch.mean(x, dim=0, keepdim=True)  # Keep the dimension for batch size
+
+        # Fully connected layers for regression
+        x = F.relu(self.fc1(x.view(1, -1)))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
 
         return x
-
-    def _create_layers(self, architecture):
-        layers = []
-        in_channels = self.in_features
-        first_fcn_flag = True
-
-        for idx, module in enumerate(architecture):
-            block, out_channels = module
-
-            if block == 'Conv':
-                layers.append(ConvBlock(in_channels, out_channels))
-                in_channels = out_channels
-
-            if block == 'Linear':
-                if first_fcn_flag:
-                    # in_channels bathth
-                    in_channels = self.num_nodes*in_channels
-                    # print(f"Number of neurons in the first linear layer: {in_channels}")
-                    first_fcn_flag = False
-
-                if idx == len(architecture) - 1:
-                    layers.append(FCN(in_channels, out_channels, act=False))
-                else: 
-                    layers.append(FCN(in_channels, out_channels))
-                in_channels = out_channels
-
-        return nn.Sequential(*layers)
-
 
 if __name__ == "__main__":
     
     from .dataset import load_data
-    batch_size = 10
+    batch_size = 1
     data_loader, _ = load_data('training_data/data/training_data', batch_size=batch_size)
     data_iter = iter(data_loader)
     first_batch = next(data_iter)
@@ -114,7 +70,7 @@ if __name__ == "__main__":
     print(f"Number of Batches is {len(data_loader)}\n")
 
     device = torch.device('cpu')
-    model = LatNet(32, 1).to(device)
+    model = GCN(1).to(device)
     learn_model_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"\nNumber of Learnable parameters: {learn_model_parameters}, Total Param: {total_params}")
