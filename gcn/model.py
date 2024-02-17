@@ -63,10 +63,12 @@ class LatNet(nn.Module):
 
     def forward(self, data): 
         x, edge_index = data.x, data.edge_index
+        # print("Input size:", x.size())  # Add this line to print the size of x
         for layer in self.layers:
 
             if isinstance(layer, ConvBlock):
                 x = layer(x, edge_index)
+                # print("ConvBlock output is :", x.size())
 
             if isinstance(layer, FCN):
                 x = layer(x.view(-1, layer.linear.in_features))
@@ -87,7 +89,9 @@ class LatNet(nn.Module):
 
             if block == 'Linear':
                 if first_fcn_flag:
+                    # in_channels bathth
                     in_channels = self.num_nodes*in_channels
+                    # print(f"Number of neurons in the first linear layer: {in_channels}")
                     first_fcn_flag = False
 
                 if idx == len(architecture) - 1:
@@ -103,21 +107,23 @@ if __name__ == "__main__":
     
     from .dataset import load_data
     batch_size = 10
-    data_loader, _, _ = load_data('training_data/data/training_data', batch_size=batch_size)
+    data_loader, _ = load_data('training_data/data/training_data', batch_size=batch_size)
     data_iter = iter(data_loader)
     first_batch = next(data_iter)
+    print(f"First Batch size is {len(first_batch)}")
+    print(f"Number of Batches is {len(data_loader)}\n")
 
     device = torch.device('cpu')
-    model = LatNet(9, 1).to(device)
+    model = LatNet(32, 1).to(device)
     learn_model_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"Number of Learnable parameters: {learn_model_parameters}, Total Param: {total_params}")
+    print(f"\nNumber of Learnable parameters: {learn_model_parameters}, Total Param: {total_params}")
 
 
-    print(first_batch[0])
-    print(first_batch)
+    # print(first_batch[0])
+    # print(first_batch)
     output = model(first_batch.to(device))
-    print(f"Output of the model is {output}")
+    print(f"\nOutput of the model is {output}")
     
     """
     Testing Conv for Batches

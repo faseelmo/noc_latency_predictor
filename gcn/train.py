@@ -20,7 +20,7 @@ BATCH_SIZE = 128
 """Dataset Information """
 DATA_DIR = 'training_data/data/training_data'
 INPUT_FEATURES = 1                                             #Node Level Features
-NUM_NODES = 9
+NUM_NODES = 32
 
 """Load Model"""
 LOAD_MODEL = False
