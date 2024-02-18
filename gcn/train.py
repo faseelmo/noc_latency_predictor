@@ -41,8 +41,11 @@ def train_fn(train_loader, model, optimizer, loss_fn):
 
     mean_loss = []
     for batch_idx, data in enumerate(loop):
-        output = model(data.to(DEVICE)).to(DEVICE)
-        loss = loss_fn(output.view(-1), data.y)
+        data = data.to(DEVICE)
+        x = data.x
+        edge_index = data.edge_index
+        output = model(x, edge_index).squeeze(1)
+        loss = loss_fn(output, data.y)
 
         optimizer.zero_grad()
         loss.backward()
@@ -57,8 +60,11 @@ def train_fn(train_loader, model, optimizer, loss_fn):
 def validation_fn(test_loader, model, loss_fn, epoch):
     mean_loss = []
     for data in test_loader:
-        output = model(data.to(DEVICE)).to(DEVICE)
-        loss = loss_fn(output.view(-1), data.y)
+        data = data.to(DEVICE)
+        x = data.x
+        edge_index = data.edge_index
+        output = model(x, edge_index).squeeze(1)
+        loss = loss_fn(output, data.y)
         mean_loss.append(loss.item()) 
     
     validation_set_loss = sum(mean_loss)/len(mean_loss)

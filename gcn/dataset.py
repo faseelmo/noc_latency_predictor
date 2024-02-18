@@ -44,7 +44,8 @@ class CustomData(Dataset):
 
         total_num_of_nodes = 32
         dummy_input = torch.ones(total_num_of_nodes).view(-1,1)
-        data = Data(x=dummy_input,edge_index=converted_edge_index_torch, y=target_value)
+        data = Data(x=dummy_input, edge_index=converted_edge_index_torch, y=target_value)
+        # data.num_nodes = total_num_of_nodes
 
 
         # """Target Label"""
@@ -193,7 +194,7 @@ if __name__ == "__main__":
     print(type(data))
 
     print(f"Graph is Valid: {data.validate(raise_on_error=True)}")
-    print(f"Input Feature ({data.x.shape})is \n{data.x}")
+    # print(f"Input Feature ({data.x.shape})is \n{data.x}")
     print(f"\nEdge Feature is \n{data.edge_attr}")
     print(f"\nOuput Label {data.y}")
     print(f"\nNodes {data.node_attrs}")

@@ -25,61 +25,103 @@ ARCHITECTURE = [
 ]
 
 class GCN(nn.Module):
-    def __init__(self, num_features, hidden_size_1=256, hidden_size_2=512, hidden_size_3=256):
+    def __init__(self, num_features, num_nodes=32,hidden_size_1=256, hidden_size_2=512, hidden_size_3=128):
         super(GCN, self).__init__()
 
+        self.num_nodes = num_nodes
+        # input = nn.Parameter(torch.FloatTensor(num_features, 1))
         # Define the three graph convolutional layers
         self.conv1 = GCNConv(num_features, hidden_size_1)
         self.conv2 = GCNConv(hidden_size_1, hidden_size_2)
         self.conv3 = GCNConv(hidden_size_2, hidden_size_3)
 
-        # Fully connected layers for regression
-        self.fc1 = nn.Linear(hidden_size_3, 128)
-        self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 1)  # Output layer for regression
+        # Define Batch Normalization for each convolutional layer
+        # self.bn1 = nn.BatchNorm1d(hidden_size_1)
+        # self.bn2 = nn.BatchNorm1d(hidden_size_2)
+        # self.bn3 = nn.BatchNorm1d(hidden_size_3)
 
-    def forward(self, data):
-        # Apply the first graph convolutional layer
-        x, edge_index = data.x, data.edge_index
-        x = F.relu(self.conv1(x, edge_index))
+        # Define three fully connected layers
+        self.fc1 = nn.Linear(num_nodes*hidden_size_3, 1)
+        # self.fc2 = nn.Linear(256, 128)
+        # self.fc3 = nn.Linear(128, 1)
+
+    def forward(self, x, edge_index):
         
-        # Apply the second graph convolutional layer
-        x = F.relu(self.conv2(x, edge_index))
+        # With Batch Normalization
+        # x = F.leaky_relu(self.bn1(self.conv1(x, edge_index)))
+        # x = F.leaky_relu(self.bn2(self.conv2(x, edge_index)))
+        # x = F.leaky_relu(self.bn3(self.conv3(x, edge_index)))
 
-        # Apply the third graph convolutional layer
-        x = F.relu(self.conv3(x, edge_index))
+        # Without Batch Normalization
+        x = F.leaky_relu(self.conv1(x, edge_index))
+        x = F.leaky_relu(self.conv2(x, edge_index))
+        x = F.leaky_relu(self.conv3(x, edge_index))
 
-        # Global pooling (e.g., mean) to aggregate node features
-        x = torch.mean(x, dim=0, keepdim=True)  # Keep the dimension for batch size
+        # print(f"Shape of x after Conv is {x.shape}")
+        x = x.view(-1, self.num_nodes*x.shape[1] )
+        # print(f"Reshaped x is {x.shape}")
+        # x = torch.mean(x, dim=1)
 
-        # Fully connected layers for regression
-        x = F.relu(self.fc1(x.view(1, -1)))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = F.relu(self.fc1(x))
+
+        # x = F.relu(self.fc2(x))
+
+        # x = self.fc3(x)
 
         return x
 
 if __name__ == "__main__":
     
-    from .dataset import load_data
-    batch_size = 1
-    data_loader, _ = load_data('training_data/data/training_data', batch_size=batch_size)
-    data_iter = iter(data_loader)
-    first_batch = next(data_iter)
-    print(f"First Batch size is {len(first_batch)}")
-    print(f"Number of Batches is {len(data_loader)}\n")
+    batch_size = 2
 
+    # Loading the Model
     device = torch.device('cpu')
     model = GCN(1).to(device)
     learn_model_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"\nNumber of Learnable parameters: {learn_model_parameters}, Total Param: {total_params}")
+    
+
+    # Loading the dataset
+    from .dataset import load_data
+    data_loader, _ = load_data('training_data/data/training_data', batch_size=batch_size)
+    for i, data in enumerate(data_loader):
+        print(f"\nBatch {i} has {len(data)} data points")
+        print(f"Data is {data}")
+        x = data.x
+        target = data.y
+        edge_index = data.edge_index
+        output = model(x, edge_index).squeeze(1)
+        print(f"Shape of output is {output.shape} and target is {target.shape}")
+        loss = F.mse_loss(output, data.y)
+        print(f"Output is {output}")
+
+
+        if i == 1: break
+    
+
+    # data_iter = iter(data_loader)
+    # first_batch = next(data_iter)
+    # print(f"First Batch size is {len(first_batch)}")
+    # print(f"Number of Batches is {len(data_loader)}\n")
+
 
 
     # print(first_batch[0])
     # print(first_batch)
-    output = model(first_batch.to(device))
-    print(f"\nOutput of the model is {output}")
+    # data = first_batch.to(device)
+    # print(f"Data is {data}")
+    # x = data.x
+    # edge_index = data.edge_index
+    # print(f"Data is {data}")
+    # print(f"Data.x is {x}")
+    # print(f"Data.edge_index is {edge_index}")
+    # output = model(x, edge_index)
+    # print(f"Shape of output is {output.shape}")
+    # print(f"Shape of target is {data.y.shape}")
+    # print(f"\nOutput of the model is {output}")
+    # loss = F.mse_loss(output, data.y)
+    # print(f"Loss is {loss}")
     
     """
     Testing Conv for Batches
