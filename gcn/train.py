@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 """Training Information """
 EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
 BATCH_SIZE = 128
 
@@ -95,6 +96,7 @@ def main():
     start_time = time.time()
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
 
+    
     model = GCN(INPUT_FEATURES).to(DEVICE)
 
     learning_rate = 5e-4
@@ -110,7 +112,7 @@ def main():
         weight_decay=WEIGHT_DECAY
     )
 
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.MSELoss().to(DEVICE)
     # loss_fn = nn.L1Loss()
 
     valid_loss_list = []
