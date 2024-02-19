@@ -16,10 +16,10 @@ EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
-BATCH_SIZE = 256
+BATCH_SIZE = 64
 
 """Dataset Information """
-DATA_DIR = 'training_data/data/training_data_tensor'
+DATA_DIR = 'training_data/data/training_data_tensor_with_weights'
 INPUT_FEATURES = 1                                             #Node Level Features
 # NUM_NODES = 32
 
@@ -43,9 +43,7 @@ def train_fn(train_loader, model, optimizer, loss_fn):
     mean_loss = []
     for batch_idx, data in enumerate(loop):
         data = data.to(DEVICE)
-        x = data.x
-        edge_index = data.edge_index
-        output = model(x, edge_index, data.batch).squeeze(1)
+        output = model(data.x, data.edge_index, data.batch).squeeze(1)
         loss = loss_fn(output, data.y)
 
         optimizer.zero_grad()
@@ -113,7 +111,7 @@ def main():
     )
 
     loss_fn = nn.MSELoss().to(DEVICE)
-    # loss_fn = nn.L1Loss()
+    # loss_fn = nn.L1Loss().to(DEVICE)
 
     valid_loss_list = []
     train_loss_list = []

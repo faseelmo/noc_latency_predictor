@@ -7,6 +7,7 @@ import sys
 sys.path.append('training_data')
 
 import torch 
+import random 
 from torch_geometric.data import Data, Batch
 from torch.utils.data import Dataset, random_split, DataLoader
 
@@ -15,7 +16,8 @@ class CustomData(Dataset):
         entries = os.listdir(pickle_dir)
         self.data_dir = pickle_dir
         self.file_list = natsorted([entry for entry in entries if os.path.isfile(os.path.join(pickle_dir, entry))])
-        self.distance_max = 6
+        random.shuffle(self.file_list)
+        self.file_list = self.file_list[:10000]
 
     def __len__(self):
         return len(self.file_list)
@@ -24,8 +26,7 @@ class CustomData(Dataset):
         file_path = os.path.join(self.data_dir, self.file_list[idx]) 
         with open(file_path, 'rb') as file:
             data = pickle.load(file)
-
-        data.x = data.x.float()
+        # data.x = data.x.float()
 
         return data
 
@@ -35,6 +36,7 @@ def custom_collate(data_list):
 
 def load_data(data_dir, batch_size=100):
     dataset = CustomData(data_dir)
+
     valid_size = int(0.1 * len(dataset))
     train_dataset, test_dataset = random_split(
         dataset, [len(dataset) - valid_size, valid_size] 
@@ -44,9 +46,13 @@ def load_data(data_dir, batch_size=100):
         train_dataset, batch_size=batch_size, shuffle=True, 
         drop_last=True, collate_fn=custom_collate
     )
+    print(f"\nNumber of batches in train_loader: {len(train_loader)}")
+
     valid_loader = DataLoader(
         test_dataset, batch_size=batch_size, shuffle=False, 
         drop_last=True, collate_fn=custom_collate)
+
+    print(f"Number of batches in valid_loader: {len(valid_loader)}")
 
     return train_loader, valid_loader
 
