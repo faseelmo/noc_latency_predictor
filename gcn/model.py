@@ -2,81 +2,43 @@ import torch
 import torch.nn as nn
 from torch_geometric.data import Data
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv
+from torch_geometric.nn import GCNConv, global_mean_pool
 
+torch.manual_seed(1)
 
-"""
-Architecture: 
-    Tuple: (Type of Layer, Num of Output Channels)
-"""
-
-# torch.manual_seed(1)
-
-ARCHITECTURE = [
-    ('Conv',  128),
-    ('Conv', 256),
-    ('Conv', 128),
-    # ('Linear', 512), 
-    ('Linear', 256), 
-    ('Linear', 128), 
-    ('Linear', 64), 
-    ('Linear', 32), 
-    ('Linear', 1), 
-]
-
-class GCN(nn.Module):
-    def __init__(self, num_features, num_nodes=32,hidden_size_1=256, hidden_size_2=512, hidden_size_3=128):
+class GCN(torch.nn.Module):
+    def __init__(self, hidden_channels=512, num_node_features=32):
         super(GCN, self).__init__()
+        # torch.manual_seed(12345)
+        self.conv1 = GCNConv(num_node_features, hidden_channels)
+        self.conv2 = GCNConv(hidden_channels, hidden_channels)
+        self.conv3 = GCNConv(hidden_channels, hidden_channels)
+        self.lin = nn.Linear(hidden_channels, 1)
 
-        self.num_nodes = num_nodes
-        # input = nn.Parameter(torch.FloatTensor(num_features, 1))
-        # Define the three graph convolutional layers
-        self.conv1 = GCNConv(num_features, hidden_size_1)
-        self.conv2 = GCNConv(hidden_size_1, hidden_size_2)
-        self.conv3 = GCNConv(hidden_size_2, hidden_size_3)
+    def forward(self, x, edge_index, batch):
+        # 1. Obtain node embeddings 
+        x = self.conv1(x, edge_index)
+        x = x.relu()
+        x = self.conv2(x, edge_index)
+        x = x.relu()
+        x = self.conv3(x, edge_index)
 
-        # Define Batch Normalization for each convolutional layer
-        # self.bn1 = nn.BatchNorm1d(hidden_size_1)
-        # self.bn2 = nn.BatchNorm1d(hidden_size_2)
-        # self.bn3 = nn.BatchNorm1d(hidden_size_3)
+        # 2. Readout layer
+        x = global_mean_pool(x, batch)  # [batch_size, hidden_channels]
 
-        # Define three fully connected layers
-        self.fc1 = nn.Linear(num_nodes*hidden_size_3, 1)
-        # self.fc2 = nn.Linear(256, 128)
-        # self.fc3 = nn.Linear(128, 1)
-
-    def forward(self, x, edge_index):
+        # 3. Apply a final classifier
+        x = F.dropout(x, p=0.5, training=self.training)
+        x = self.lin(x)
         
-        # With Batch Normalization
-        # x = F.leaky_relu(self.bn1(self.conv1(x, edge_index)))
-        # x = F.leaky_relu(self.bn2(self.conv2(x, edge_index)))
-        # x = F.leaky_relu(self.bn3(self.conv3(x, edge_index)))
-
-        # Without Batch Normalization
-        x = F.leaky_relu(self.conv1(x, edge_index))
-        x = F.leaky_relu(self.conv2(x, edge_index))
-        x = F.leaky_relu(self.conv3(x, edge_index))
-
-        # print(f"Shape of x after Conv is {x.shape}")
-        x = x.view(-1, self.num_nodes*x.shape[1] )
-        # print(f"Reshaped x is {x.shape}")
-        # x = torch.mean(x, dim=1)
-
-        x = F.relu(self.fc1(x))
-
-        # x = F.relu(self.fc2(x))
-
-        # x = self.fc3(x)
-
         return x
 
 if __name__ == "__main__":
     
-    batch_size = 2
+    batch_size = 10
 
     # Loading the Model
     device = torch.device('cpu')
-    model = GCN(1).to(device)
+    model = GCN().to(device)
     learn_model_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"\nNumber of Learnable parameters: {learn_model_parameters}, Total Param: {total_params}")
@@ -84,15 +46,13 @@ if __name__ == "__main__":
 
     # Loading the dataset
     from .dataset import load_data
-    data_loader, _ = load_data('training_data/data/training_data', batch_size=batch_size)
+    data_loader, _ = load_data('training_data/data/training_data_old', batch_size=batch_size)
     for i, data in enumerate(data_loader):
         print(f"\nBatch {i} has {len(data)} data points")
         print(f"Data is {data}")
-        x = data.x
-        target = data.y
-        edge_index = data.edge_index
-        output = model(x, edge_index).squeeze(1)
-        print(f"Shape of output is {output.shape} and target is {target.shape}")
+        # print(f"Data batch is {data.batch}")
+        output = model(data.x, data.edge_index, data.batch).squeeze(1)
+        print(f"Shape of output is {output.shape} and target is {data.y.shape}")
         loss = F.mse_loss(output, data.y)
         print(f"Output is {output}")
 

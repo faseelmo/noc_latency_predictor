@@ -16,10 +16,10 @@ EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
-BATCH_SIZE = 128
+BATCH_SIZE = 256
 
 """Dataset Information """
-DATA_DIR = 'training_data/data/training_data'
+DATA_DIR = 'training_data/data/training_data_old'
 INPUT_FEATURES = 1                                             #Node Level Features
 NUM_NODES = 32
 
@@ -45,7 +45,7 @@ def train_fn(train_loader, model, optimizer, loss_fn):
         data = data.to(DEVICE)
         x = data.x
         edge_index = data.edge_index
-        output = model(x, edge_index).squeeze(1)
+        output = model(x, edge_index, data.batch).squeeze(1)
         loss = loss_fn(output, data.y)
 
         optimizer.zero_grad()
@@ -64,7 +64,7 @@ def validation_fn(test_loader, model, loss_fn, epoch):
         data = data.to(DEVICE)
         x = data.x
         edge_index = data.edge_index
-        output = model(x, edge_index).squeeze(1)
+        output = model(x, edge_index, data.batch).squeeze(1)
         loss = loss_fn(output, data.y)
         mean_loss.append(loss.item()) 
     
@@ -97,9 +97,9 @@ def main():
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
 
     
-    model = GCN(INPUT_FEATURES).to(DEVICE)
+    model = GCN().to(DEVICE)
 
-    learning_rate = 5e-4
+    learning_rate = 0.001 #5e-4
 
     if LOAD_MODEL:
         model_state_dict = torch.load(MODEL_PATH)
