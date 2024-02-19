@@ -19,9 +19,9 @@ WEIGHT_DECAY = 0
 BATCH_SIZE = 256
 
 """Dataset Information """
-DATA_DIR = 'training_data/data/training_data_old'
+DATA_DIR = 'training_data/data/training_data_tensor'
 INPUT_FEATURES = 1                                             #Node Level Features
-NUM_NODES = 32
+# NUM_NODES = 32
 
 """Load Model"""
 LOAD_MODEL = False
@@ -99,7 +99,7 @@ def main():
     
     model = GCN().to(DEVICE)
 
-    learning_rate = 0.001 #5e-4
+    learning_rate = 0.01 #5e-4
 
     if LOAD_MODEL:
         model_state_dict = torch.load(MODEL_PATH)
