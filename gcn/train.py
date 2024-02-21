@@ -16,10 +16,10 @@ EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 
 """Dataset Information """
-DATA_DIR = 'training_data/data/training_data_tensor_with_weights'
+DATA_DIR = 'training_data/data/training_data_tensor_MultiDiGraph'
 INPUT_FEATURES = 1                                             #Node Level Features
 # NUM_NODES = 32
 
@@ -97,7 +97,7 @@ def main():
     
     model = GCN().to(DEVICE)
 
-    learning_rate = 0.01 #5e-4
+    learning_rate = 0.001 #5e-4
 
     if LOAD_MODEL:
         model_state_dict = torch.load(MODEL_PATH)

@@ -16,8 +16,8 @@ class CustomData(Dataset):
         entries = os.listdir(pickle_dir)
         self.data_dir = pickle_dir
         self.file_list = natsorted([entry for entry in entries if os.path.isfile(os.path.join(pickle_dir, entry))])
-        random.shuffle(self.file_list)
-        self.file_list = self.file_list[:10000]
+        # random.shuffle(self.file_list)
+        # self.file_list = self.file_list[:10000]
 
     def __len__(self):
         return len(self.file_list)
@@ -57,7 +57,7 @@ def load_data(data_dir, batch_size=100):
     return train_loader, valid_loader
 
 if __name__ == "__main__":
-    pickle_dir = 'training_data/data/training_data_tensor'
+    pickle_dir = 'training_data/data/training_data_tensor_MultiDiGraph'
     dataset = CustomData(pickle_dir)
 
     print(f"Dataset size {len(dataset)}")

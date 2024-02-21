@@ -4,19 +4,20 @@ from torch_geometric.data import Data
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, global_mean_pool, GraphConv
 
-torch.manual_seed(1)
+# torch.manual_seed(1)
 
 class GCN(torch.nn.Module):
-    def __init__(self, hidden_channels=2000, num_node_features=1):
+    def __init__(self, hidden_channels=128, num_node_features=1):
         super(GCN, self).__init__()
         # torch.manual_seed(12345)
         self.conv1 = GraphConv(num_node_features, hidden_channels)
         self.conv2 = GraphConv(hidden_channels, hidden_channels)
         self.conv3 = GraphConv(hidden_channels, hidden_channels)
-        self.lin1 = nn.Linear(hidden_channels, 512)
-        self.lin2 = nn.Linear(512, 256)
-        self.lin3 = nn.Linear(256, 64)
-        self.lin4 = nn.Linear(64, 1)
+
+        self.lin1 = nn.Linear(hidden_channels, 64)
+        self.lin2 = nn.Linear(64, 32)
+        self.lin3 = nn.Linear(32, 16)
+        self.lin4 = nn.Linear(16, 1)
 
     def forward(self, x, edge_index, batch):
         # 1. Obtain node embeddings 
@@ -56,7 +57,7 @@ if __name__ == "__main__":
     # Loading the dataset
     from .dataset import load_data
     batch_size = 10
-    data_loader, _ = load_data('training_data/data/training_data_tensor', batch_size=batch_size)
+    data_loader, _ = load_data('training_data/data/training_data_tensor_MultiDiGraph', batch_size=batch_size)
 
     # Loading the Model
     device = torch.device('cpu')
