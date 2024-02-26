@@ -38,13 +38,14 @@ def load_data(data_dir, batch_size=100):
 
     train_loader = DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, 
-        drop_last=True, collate_fn=custom_collate
+        drop_last=True, collate_fn=custom_collate, pin_memory=True, num_workers=4
     )
     print(f"\nNumber of batches in train_loader: {len(train_loader)}")
 
     valid_loader = DataLoader(
         test_dataset, batch_size=batch_size, shuffle=False, 
-        drop_last=True, collate_fn=custom_collate)
+        drop_last=True, collate_fn=custom_collate, pin_memory=True, num_workers=4
+    )
 
     print(f"Number of batches in valid_loader: {len(valid_loader)}")
 
