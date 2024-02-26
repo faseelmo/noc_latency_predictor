@@ -96,9 +96,9 @@ def main():
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
 
     
-    # model = GCN().to(DEVICE)
-    model = GCN()
-    model = nn.DataParallel(model).to(DEVICE)
+    model = GCN().to(DEVICE)
+    # model = GCN()
+    # model = nn.DataParallel(model).to(DEVICE)
 
     learning_rate = 0.001 #5e-4
 
