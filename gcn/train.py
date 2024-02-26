@@ -142,8 +142,9 @@ def main():
         #     learning_rate = 5e-6
         #     print(f"Learning Rate Changed to {learning_rate}")
 
-        if (epoch+1) % 50 == 0:
+        if (epoch+1) % 50 == 0 or (epoch+1) == 1:
             torch.save(model, f'{SAVE_RESULTS}/LatNet_{epoch+1}.pth')
+            torch.save(model.state_dict(), f'{SAVE_RESULTS}/LatNet_{epoch+1}_state_dict.pth')
             end_time = time.time()
             time_elapsed = (end_time - start_time) / 60
             print(f"\nTraining Time: {time_elapsed} minutes\n")
