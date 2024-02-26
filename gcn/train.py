@@ -8,6 +8,7 @@ from .dataset import load_data
 import os 
 import time
 import pickle
+import math
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
@@ -16,10 +17,10 @@ EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
-BATCH_SIZE = 128
+BATCH_SIZE = 200
 
 """Dataset Information """
-DATA_DIR = 'training_data/data/training_data_tensor_MultiDiGraph'
+DATA_DIR = 'training_data/data/unique_graphs_with_links'
 INPUT_FEATURES = 1                                             #Node Level Features
 # NUM_NODES = 32
 
@@ -67,7 +68,7 @@ def validation_fn(test_loader, model, loss_fn, epoch):
         mean_loss.append(loss.item()) 
     
     validation_set_loss = sum(mean_loss)/len(mean_loss)
-    print(f"[{epoch+1}/{EPOCHS}] Validation MAE is {validation_set_loss}")
+    print(f"[{epoch+1}/{EPOCHS}] Validation Loss is {math.sqrt(validation_set_loss)}")
     return validation_set_loss
 
 def plot_and_save_loss(train_loss, valid_loss):
@@ -123,9 +124,13 @@ def main():
         valid_loss_list.append(valid_loss)
         plot_and_save_loss(train_loss_list, valid_loss_list)
 
-        # if (epoch+1) == 2: 
-        #     learning_rate = 5e-5
-        #     print(f"Learning Rate Changed to {learning_rate}")
+        if (epoch+1) == 50: 
+            learning_rate = 0.0005
+            print(f"Learning Rate Changed to {learning_rate}")
+
+        if (epoch+1) == 100: 
+            learning_rate = 0.0001
+            print(f"Learning Rate Changed to {learning_rate}")
 
         # if (epoch+1) == 8: 
         #     learning_rate = 1e-5

@@ -2,12 +2,12 @@ import torch
 import torch.nn as nn
 from torch_geometric.data import Data
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, global_mean_pool, GraphConv
+from torch_geometric.nn import GCNConv, global_mean_pool, GraphConv, global_add_pool
 
 # torch.manual_seed(1)
 
 class GCN(torch.nn.Module):
-    def __init__(self, hidden_channels=128, num_node_features=1):
+    def __init__(self, hidden_channels=200, num_node_features=3):
         super(GCN, self).__init__()
         # torch.manual_seed(12345)
         self.conv1 = GraphConv(num_node_features, hidden_channels)
@@ -16,8 +16,8 @@ class GCN(torch.nn.Module):
 
         self.lin1 = nn.Linear(hidden_channels, 64)
         self.lin2 = nn.Linear(64, 32)
-        self.lin3 = nn.Linear(32, 16)
-        self.lin4 = nn.Linear(16, 1)
+        self.lin3 = nn.Linear(32, 1)
+        # self.lin4 = nn.Linear(16, 1)
 
     def forward(self, x, edge_index, batch):
         # 1. Obtain node embeddings 
@@ -34,7 +34,7 @@ class GCN(torch.nn.Module):
         # print(f"3rd GCN Output Size is {x.shape}")
 
         # 2. Readout layer
-        x = global_mean_pool(x, batch)  # [batch_size, hidden_channels]
+        x = global_add_pool(x, batch)  # [batch_size, hidden_channels]
         # print(f"Global Mean Pooling Output Size is {x.shape}")
 
         # 3. Apply a final classifier
@@ -46,9 +46,9 @@ class GCN(torch.nn.Module):
         x = F.relu(x)
 
         x = self.lin3(x)
-        x = F.relu(x)
+        # x = F.relu(x)
 
-        x = self.lin4(x)
+        # x = self.lin4(x)
         
         return x
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # Loading the dataset
     from .dataset import load_data
     batch_size = 10
-    data_loader, _ = load_data('training_data/data/training_data_tensor_MultiDiGraph', batch_size=batch_size)
+    data_loader, _ = load_data('training_data/data/unique_graphs_with_links', batch_size=batch_size)
 
     # Loading the Model
     device = torch.device('cpu')
