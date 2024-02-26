@@ -97,7 +97,7 @@ def main():
     if len(sys.argv) > 1:
         DATA_DIR = sys.argv[1]
         print(f"Data Directory is {DATA_DIR}")
-        sys.exit(0)
+        # sys.exit(0)
 
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
 
