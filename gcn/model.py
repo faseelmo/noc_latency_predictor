@@ -46,9 +46,9 @@ class GCN(torch.nn.Module):
         x = F.relu(x)
 
         x = self.lin3(x)
-        # x = F.relu(x)
+        x = F.relu(x)
 
-        # x = self.lin4(x)
+        x = self.lin4(x)
         
         return x
 
