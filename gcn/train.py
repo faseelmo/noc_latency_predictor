@@ -8,6 +8,7 @@ from .dataset import load_data
 import os 
 import time
 import pickle
+import sys
 import math
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -93,9 +94,15 @@ def plot_and_save_loss(train_loss, valid_loss):
 
 def main():
     start_time = time.time()
+    if len(sys.argv) > 1:
+        DATA_DIR = sys.argv[1]
+        print(f"Data Directory is {DATA_DIR}")
+        sys.exit(0)
+
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
 
     
+
     model = GCN().to(DEVICE)
     # model = GCN()
     # model = nn.DataParallel(model).to(DEVICE)
