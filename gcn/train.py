@@ -18,7 +18,7 @@ EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
-BATCH_SIZE = 200
+BATCH_SIZE = 64
 
 """Dataset Information """
 DATA_DIR = 'training_data/data/unique_graphs_with_links'
@@ -55,7 +55,7 @@ def train_fn(train_loader, model, optimizer, loss_fn):
         loop.set_postfix(loss=loss.item())
         mean_loss.append(loss.item())
 
-    train_loss = sum(mean_loss)/len(mean_loss) 
+    train_loss = math.sqrt(sum(mean_loss)/len(mean_loss) )
     return train_loss
 
 def validation_fn(test_loader, model, loss_fn, epoch):
@@ -68,7 +68,7 @@ def validation_fn(test_loader, model, loss_fn, epoch):
         loss = loss_fn(output, data.y)
         mean_loss.append(loss.item()) 
     
-    validation_set_loss = sum(mean_loss)/len(mean_loss)
+    validation_set_loss = math.sqrt(sum(mean_loss)/len(mean_loss))
     print(f"[{epoch+1}/{EPOCHS}] Validation Loss is {math.sqrt(validation_set_loss)}")
     return validation_set_loss
 
@@ -100,7 +100,6 @@ def main():
         # sys.exit(0)
 
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
-
     
 
     model = GCN().to(DEVICE)
