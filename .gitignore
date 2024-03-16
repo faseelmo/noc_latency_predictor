@@ -16,6 +16,5 @@ training_data/.ipynb_checkpoints
 training_data/data/*
 !training_data/data/non_iso_graphs/
 
-# gcn/results/
 gcn/new_model/
 gcn/data/
