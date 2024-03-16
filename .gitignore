@@ -6,6 +6,7 @@ __pycache__/
 *.pickle
 *.xml
 *.pth
+*.pkl
 *$py.class
 
 training_data/ratatoskr/BuffUsage
@@ -14,6 +15,6 @@ training_data/.ipynb_checkpoints
 training_data/data/*
 !training_data/data/.gitkeep
 
-gcn/results/
+# gcn/results/
 gcn/new_model/
 gcn/data/
