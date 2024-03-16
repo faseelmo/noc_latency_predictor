@@ -2,25 +2,28 @@ import torch
 import torch.nn as nn 
 import torch.optim as optim 
 
-from .model import LatNet
+from .model import GCN
 from .dataset import load_data
 
 import os 
 import time
 import pickle
+import sys
+import math
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 """Training Information """
 EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 
 """Dataset Information """
-DATA_DIR = 'training_data/data/training_data'
+DATA_DIR = 'training_data/data/unique_graphs_with_links'
 INPUT_FEATURES = 1                                             #Node Level Features
-NUM_NODES = 9
+# NUM_NODES = 32
 
 """Load Model"""
 LOAD_MODEL = False
@@ -41,8 +44,9 @@ def train_fn(train_loader, model, optimizer, loss_fn):
 
     mean_loss = []
     for batch_idx, data in enumerate(loop):
-        output = model(data.to(DEVICE)).to(DEVICE)
-        loss = loss_fn(output.view(-1), data.y)
+        data = data.to(DEVICE)
+        output = model(data.x, data.edge_index, data.batch).squeeze(1)
+        loss = loss_fn(output, data.y)
 
         optimizer.zero_grad()
         loss.backward()
@@ -51,18 +55,21 @@ def train_fn(train_loader, model, optimizer, loss_fn):
         loop.set_postfix(loss=loss.item())
         mean_loss.append(loss.item())
 
-    train_loss = sum(mean_loss)/len(mean_loss) 
+    train_loss = math.sqrt(sum(mean_loss)/len(mean_loss) )
     return train_loss
 
 def validation_fn(test_loader, model, loss_fn, epoch):
     mean_loss = []
     for data in test_loader:
-        output = model(data.to(DEVICE)).to(DEVICE)
-        loss = loss_fn(output.view(-1), data.y)
+        data = data.to(DEVICE)
+        x = data.x
+        edge_index = data.edge_index
+        output = model(x, edge_index, data.batch).squeeze(1)
+        loss = loss_fn(output, data.y)
         mean_loss.append(loss.item()) 
     
-    validation_set_loss = sum(mean_loss)/len(mean_loss)
-    print(f"[{epoch+1}/{EPOCHS}] Validation MAE is {validation_set_loss}")
+    validation_set_loss = math.sqrt(sum(mean_loss)/len(mean_loss))
+    print(f"[{epoch+1}/{EPOCHS}] Validation Loss is {math.sqrt(validation_set_loss)}")
     return validation_set_loss
 
 def plot_and_save_loss(train_loss, valid_loss):
@@ -87,11 +94,19 @@ def plot_and_save_loss(train_loss, valid_loss):
 
 def main():
     start_time = time.time()
+    if len(sys.argv) > 1:
+        DATA_DIR = sys.argv[1]
+        print(f"Data Directory is {DATA_DIR}")
+        # sys.exit(0)
+
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
+    
 
-    model = LatNet(NUM_NODES, INPUT_FEATURES).to(DEVICE)
+    model = GCN().to(DEVICE)
+    # model = GCN()
+    # model = nn.DataParallel(model).to(DEVICE)
 
-    learning_rate = 2e-4
+    learning_rate = 0.001 #5e-4
 
     if LOAD_MODEL:
         model_state_dict = torch.load(MODEL_PATH)
@@ -104,8 +119,8 @@ def main():
         weight_decay=WEIGHT_DECAY
     )
 
-    loss_fn = nn.MSELoss()
-    # loss_fn = nn.L1Loss()
+    loss_fn = nn.MSELoss().to(DEVICE)
+    # loss_fn = nn.L1Loss().to(DEVICE)
 
     valid_loss_list = []
     train_loss_list = []
@@ -117,9 +132,13 @@ def main():
         valid_loss_list.append(valid_loss)
         plot_and_save_loss(train_loss_list, valid_loss_list)
 
-        # if (epoch+1) == 2: 
-        #     learning_rate = 5e-5
-        #     print(f"Learning Rate Changed to {learning_rate}")
+        if (epoch+1) == 50: 
+            learning_rate = 0.0005
+            print(f"Learning Rate Changed to {learning_rate}")
+
+        if (epoch+1) == 100: 
+            learning_rate = 0.0001
+            print(f"Learning Rate Changed to {learning_rate}")
 
         # if (epoch+1) == 8: 
         #     learning_rate = 1e-5
@@ -129,8 +148,9 @@ def main():
         #     learning_rate = 5e-6
         #     print(f"Learning Rate Changed to {learning_rate}")
 
-        if (epoch+1) % 50 == 0:
+        if (epoch+1) % 50 == 0 or (epoch+1) == 1:
             torch.save(model, f'{SAVE_RESULTS}/LatNet_{epoch+1}.pth')
+            torch.save(model.state_dict(), f'{SAVE_RESULTS}/LatNet_{epoch+1}_state_dict.pth')
             end_time = time.time()
             time_elapsed = (end_time - start_time) / 60
             print(f"\nTraining Time: {time_elapsed} minutes\n")
