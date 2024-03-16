@@ -8,12 +8,13 @@ __pycache__/
 *.pth
 *.pkl
 *$py.class
+*.edgelist
 
 training_data/ratatoskr/BuffUsage
 training_data/ratatoskr/VCUsage
 training_data/.ipynb_checkpoints
 training_data/data/*
-!training_data/data/.gitkeep
+!training_data/data/non_iso_graphs/
 
 # gcn/results/
 gcn/new_model/

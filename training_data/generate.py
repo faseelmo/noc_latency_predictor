@@ -1,8 +1,9 @@
-import argparse
-from utils.Generator import Generator
-import shutil
 import os 
 import sys
+import shutil
+import argparse
+
+from utils.Generator import Generator
     
 parser = argparse.ArgumentParser(description='Generate a random task that can be mapped to a NoC and estimate then save latency results')
 parser.add_argument('--gen', action='store_true', help='Generate all combinations of data')
