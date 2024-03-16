@@ -12,31 +12,9 @@ To detach from the container press `Ctrl + P` followed by `Ctrl + Q`
 
 
 ### Training Data Generation 
-Generate a random task from a Directed Acyclic Graph, map those random tasks to network nodes, and then calculate network latency on Ratatoskr.   
-
-Navigate to the [training data](training_data) directory. 
+The file `training_data/data/non_iso_graphs.zip` contains a directory with around 800
+non-isomorphic graphs with 9 nodes (including 'Start' and 'Exit'). To unzip, run the 
+following command in the `data` directory 
 ```
-cd training_data/
+unzip non_iso_graphs.zip
 ```
-1. If you want to generate a data.xml file with 5 tasks and perform the simulation once, run the [generate](training_data/generate.py) python script with the following arguments. 
-```
-python3 generate.py --tasks 5
-```
-> The results can be seen in _training_data/ratatoskr/results_.
-
-2. If you want to generate multiple random possible combination of DAGs for a given number of tasks (say 4) and then do 50 random mapping per tasks, run the python script with the following arguments. Here demand for each task is random. 
-```
-python3 generate.py --gen --tasksNum 4 --mapsPerTask 50
-```
-> The results can be seen in _training_data/data_.
-
-3. Demand and PE Delay  
-Current demand parameters are set to  
-    - lowDemend = [1,100]  
-    - mediumDemend = [100,300]  
-    - highDemend = [300,500]  
-    If needed these values can be modied in [DAG Genearator](training_data/utils/DAG_Generator.py)  
-
-For now delay values of each processing element is also set using the above demand parameters.  
-Note: The term 'duration' and 'delay' are used interchangeably in the code.
-
