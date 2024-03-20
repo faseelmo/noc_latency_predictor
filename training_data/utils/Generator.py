@@ -7,7 +7,15 @@ from .DAG_Generator import DAG
 from .Map_Generator import MapGenerator
 
 class Generator:
-    def __init__(self, result_path='', num_of_tasks=4, demand_range=(1,100), network_mesh_size=4, maps_per_task=1, sim_count=0):
+    def __init__(
+        self, 
+        result_path='', 
+        num_of_tasks=4, 
+        demand_range=(1,100), 
+        network_mesh_size=4, 
+        maps_per_task=1, 
+        sim_count=0
+    ):
         
         self.max_out_list = [1,2,3,4,5]     # Max out_degree of one node
         self.alpha_list = [0.5,1.0,1.5]     # DAG shape
@@ -27,14 +35,15 @@ class Generator:
 
         self.checkResultPath()
 
-    def generate_all_dag(self):
+    def generate_all_dag(self) -> None : 
         for max_out in self.max_out_list:
             for alpha in self.alpha_list:
                 for beta in self.beta_list:
-                    print(f" Simulating for max_out: {max_out}, alpha: {alpha}, beta: {beta}")
+                    print(f" Simulating for max_out: {max_out}, "
+                          f"alpha: {alpha}, beta: {beta}")
                     self.generate(dag_param=(max_out, alpha, beta))
 
-    def generate(self, dag_param=(3, 1.0, 1.0)):
+    def generate(self, dag_param=(3, 1.0, 1.0)) -> None :
         max_out, alpha, beta = dag_param
         dag = DAG(
             nodes=self.num_of_task,
