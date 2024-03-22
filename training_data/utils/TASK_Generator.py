@@ -72,14 +72,14 @@ class TaskGenerator:
         for i in range(self.num_nodes): 
             if i == 0:                      node = 'Start'
             elif i == (self.num_nodes-1):   node = 'Exit'
-            else:                           node = i
+            else:                           node = str(i)
             
             task_node = self.createTaskHeader(task_parent)
 
             first_require = first_generate = True
             require_id = generate_id = 0
             for (src, dst) in self.edges:
-                if node == dst:
+                if node == str(dst):
                     """This Node needs require from src"""
                     demand = self.demand[(src, dst)]
                     if src == 'Start': src = 0
@@ -93,7 +93,7 @@ class TaskGenerator:
                     first_require=False
                     require_id += 1
 
-                if node == src: 
+                if node == str(src): 
                     """This Node need Generate to dst"""
                     demand = self.demand[(src, dst)]
 

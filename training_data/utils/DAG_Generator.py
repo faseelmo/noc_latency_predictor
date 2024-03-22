@@ -61,11 +61,14 @@ class DAG:
 
         else: 
             self.graph = nx.read_edgelist(graph_path, create_using=nx.DiGraph())
+            self.max_out = None 
+            self.alpha = None
+            self.beta = None
+            self.num_nodes = self.graph.number_of_nodes() - 2
             if graph_pos_path is not None: 
                 self.position = json.load(open(graph_pos_path))
             else: 
                 self.position = nx.circular_layout(self.graph)
-
 
         low, high = demand_range
         self.add_demand(low, high)
@@ -182,14 +185,16 @@ class DAG:
         return nx.is_isomorphic(self.graph, graph)
 
 if __name__ == "__main__": 
-    dag = DAG(nodes=5, alpha=0.5)
-    # dag = DAG(
-        # graph_path='../data/non_iso_graphs/graphs/500.edgelist', 
-        # graph_pos_path='../data/non_iso_graphs/positions/500.json', 
-        # demand_range=(10,10))
+    # dag = DAG(nodes=5, alpha=0.5)
+    dag = DAG(
+        graph_path='data/non_iso_graphs/graphs/500.edgelist', 
+        graph_pos_path='data/non_iso_graphs/positions/500.json', 
+        demand_range=(10,10))
     print(f"Position is: \n{dag.position} ")
     print(f"Edge Attributes: \n{dag.edge_attr} ")
     print(f"Node Attributes: \n{dag.node_attr} ")
+    print(f"Params {dag.max_out, dag.alpha, dag.beta}")
+    print(f"Number of node (non exit and start) {dag.num_nodes}")
     dag.plot(show_node_attrib=False)
 
 

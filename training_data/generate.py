@@ -15,9 +15,14 @@ parser.add_argument(
     help='Generate all combinations of data'
 )
 parser.add_argument(
+    '--gen_from_graph', 
+    action='store_true',
+    help='Use already generated graph from /data/non_iso_graph'
+)
+parser.add_argument(
     '--tasks_num', 
     type=int, 
-    default=4, 
+    default=None, 
     help='Number of tasks excluding Start and Exit'
 )
 parser.add_argument(
@@ -51,11 +56,13 @@ parser.add_argument(
     help='Number of Iteration of data generation'
 )
 
+
 args = parser.parse_args()
 
 NETWORK_SIZE = 4
 
 all_gen = args.gen
+gen_from_graph = args.gen_from_graph
 tasks = args.tasks_num
 maps = args.maps_per_task
 sim_count = args.sim_count
@@ -63,7 +70,8 @@ low_demand = args.low_range
 high_demand = args.high_range
 sim_iteration = args.iteration
 
-result_path = 'data/task_' + str(tasks)
+# result_path = 'data/task_' + str(tasks)
+result_path = 'data/garbage'
 network_config_path = 'ratatoskr/config/'
 network_file_path = 'ratatoskr/config/misc/networks/' 
 if NETWORK_SIZE == 4:
@@ -94,14 +102,18 @@ data_generator = Generator(
     sim_count=sim_count
 )
 
-total_simulation_count = data_generator.total_sim_count 
+first_iter_flag = True
 
 if all_gen:
-    print(f"Total datapoint that'll be generated: "
-          f"{total_simulation_count*sim_iteration}")
     for i in range(sim_iteration):
         print(f"Iteartion {i+1}")
         data_generator.generate_all_dag()
+elif gen_from_graph:
+    print('Usings graphs from /data/non_iso_graphs')
+    for i in range(sim_iteration):
+        print(f"Iteartion {i+1}")
+        data_generator.generate_from_graph()
+    
 else: 
     data_generator.generate()
 

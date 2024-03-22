@@ -28,14 +28,40 @@ class Generator:
         self.demand_range = demand_range
         self.network = network_mesh_size
         self.maps_per_task = maps_per_task
-        self.total_sim_count = len(self.max_out_list) * len(self.alpha_list) * len(self.beta_list) * maps_per_task
+        self.first_iter_flag = True
 
-        with open('utils/graph.pkl', 'rb') as file:
+        with open('utils/most_freq_graph.pkl', 'rb') as file:
             self.most_freq_graph = pickle.load(file)
 
         self.checkResultPath()
 
+    def generate_from_graph(self) -> None: 
+        non_iso_graphs_path = 'data/non_iso_graphs'
+
+        graph_files = os.listdir(os.path.join(non_iso_graphs_path, 'graphs'))
+        position_files = os.listdir(os.path.join(non_iso_graphs_path, 'graphs'))
+        assert len(graph_files) == len(position_files), "Corrupt dataset, file size don't match"
+        self.total_sim_count =  len(graph_files)* self.maps_per_task
+
+        if self.first_iter_flag: 
+            print(f"Total Datapoints to generate {self.total_sim_count}")
+            self.first_iter_flag = False
+
+        for i in range(len(graph_files)): 
+            dag = DAG(
+                graph_path=os.path.join(non_iso_graphs_path, 'graphs', f'{i}.edgelist'),
+                graph_pos_path=os.path.join(non_iso_graphs_path, 'positions', f'{i}.json'),
+                demand_range=self.demand_range
+            )
+            self.generate(dag=dag)
+
+
     def generate_all_dag(self) -> None : 
+        self.total_sim_count = len(self.max_out_list) * len(self.alpha_list) * len(self.beta_list) * self.maps_per_task
+        if self.first_iter_flag: 
+            print(f"Total Datapoints to generate {self.total_sim_count}")
+            self.first_iter_flag = False
+
         for max_out in self.max_out_list:
             for alpha in self.alpha_list:
                 for beta in self.beta_list:
@@ -43,19 +69,21 @@ class Generator:
                           f"alpha: {alpha}, beta: {beta}")
                     self.generate(dag_param=(max_out, alpha, beta))
 
-    def generate(self, dag_param=(3, 1.0, 1.0)) -> None :
+    def generate(self, dag_param=(3, 1.0, 1.0), dag=None ) -> None :
         max_out, alpha, beta = dag_param
-        dag = DAG(
-            nodes=self.num_of_task,
-            max_out=max_out, 
-            alpha=alpha,
-            beta=beta, 
-            demand_range=self.demand_range
-        )
+        
+        if dag is None: # i.e when generate_all_dag is called
+            dag = DAG(
+                nodes=self.num_of_task,
+                max_out=max_out, 
+                alpha=alpha,
+                beta=beta, 
+                demand_range=self.demand_range
+            )
 
-        if dag.is_isomorphic(self.most_freq_graph): 
-            print("Found Most Occuring Graph. Skipping Process")
-            return
+        # if dag.is_isomorphic(self.most_freq_graph): 
+        #     print("Found Most Occuring Graph. Skipping Process")
+        #     return
 
         TaskGenerator(dag, 'ratatoskr/config/data.xml')     # Creates the relevant data.xml file in config dir
         for i in range(self.maps_per_task):                 # For multiple maps per task
@@ -65,16 +93,16 @@ class Generator:
                 file_location='ratatoskr/config/map.xml'
             )                                               # Assigns a random map for the dag and creates the map.xml file in config dir
 
-            sim_results = self.doSim(mapper, showSimOutput=False)
+            sim_results = self.doSim(mapper, showSimOutput=False, num_nodes=dag.num_nodes)
             if sim_results['sim_successfull_flag'] is False: print("[Warning] Sim not Successfull")
             else: print(f"      [{i+1}/{self.maps_per_task}] Latency = {sim_results['network_processing_time']} ")
             self.saveResults(dag, mapper.map, sim_results)
 
         print(f" All Mapping Combination done\n")
 
-    def doSim(self, mapper, showSimOutput=False): 
+    def doSim(self, mapper, showSimOutput=False, num_nodes=None): 
         sim_successfull_flag = False 
-        last_node = mapper.map[self.num_of_task+1]
+        last_node = mapper.map[num_nodes+1]
         successfull_string = '[ProcessingElementVC:startSending]  Node' + str(last_node)
         command = "cd ratatoskr/ && ./sim"
         process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -140,5 +168,8 @@ class Generator:
             input("Press Enter to Proceed ")
 
 if __name__ == "__main__": 
-    gen = Generator(result_path= 'skraa', num_of_tasks=10, demand_range=(10,100))
+    gen = Generator(result_path= 'data/garbage', num_of_tasks=4, demand_range=(10,10))
     gen.generate_all_dag()
+
+    # gen = Generator(result_path= 'data/garbage', num_of_tasks=None, demand_range=(10,10))
+    # gen.generate_from_graph()
