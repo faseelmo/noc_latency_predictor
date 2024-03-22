@@ -30,8 +30,8 @@ class Generator:
         self.maps_per_task = maps_per_task
         self.first_iter_flag = True
 
-        with open('utils/most_freq_graph.pkl', 'rb') as file:
-            self.most_freq_graph = pickle.load(file)
+        # with open('utils/most_freq_graph.pkl', 'rb') as file:
+        #     self.most_freq_graph = pickle.load(file)
 
         self.checkResultPath()
 
