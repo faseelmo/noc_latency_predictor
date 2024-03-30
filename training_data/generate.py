@@ -71,7 +71,7 @@ high_demand = args.high_range
 sim_iteration = args.iteration
 
 # result_path = 'data/task_' + str(tasks)
-result_path = 'data/garbage'
+result_path = 'data/task_from_graph'
 network_config_path = 'ratatoskr/config/'
 network_file_path = 'ratatoskr/config/misc/networks/' 
 if NETWORK_SIZE == 4:

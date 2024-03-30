@@ -7,7 +7,7 @@ from torch_geometric.nn import GCNConv, global_mean_pool, GraphConv, global_add_
 # torch.manual_seed(1)
 
 class GCN(torch.nn.Module):
-    def __init__(self, hidden_channels=512, num_node_features=3):
+    def __init__(self, hidden_channels=512, num_node_features=1):
         super(GCN, self).__init__()
         # torch.manual_seed(12345)
         self.conv1 = GraphConv(num_node_features, hidden_channels)
@@ -56,8 +56,8 @@ if __name__ == "__main__":
     
     # Loading the dataset
     from .dataset import load_data
-    batch_size = 10
-    data_loader, _ = load_data('training_data/data/unique_graphs_with_links', batch_size=batch_size)
+    batch_size = 1
+    data_loader, _ = load_data('training_data/data/task_from_graph_tensor', batch_size=batch_size)
 
     # Loading the Model
     device = torch.device('cpu')
@@ -74,11 +74,10 @@ if __name__ == "__main__":
         print(f"Data is {data}")
         # print(f"Data batch is {data.batch}")
         output = model(data.x, data.edge_index, data.batch).squeeze(1)
-        print(f"Shape of output is {output.shape} and target is {data.y.shape}")
-        loss = F.mse_loss(output, data.y)
-        print(f"Output is {output}")
-        print(f"-----------------------------------")
-
+        # print(f"Shape of output is {output.shape} and target is {data.y.shape}")
+        # loss = F.mse_loss(output, data.y)
+        # print(f"Output is {output}")
+        # print(f"-----------------------------------")
 
         if i == 1: break
     

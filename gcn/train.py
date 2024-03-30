@@ -21,7 +21,7 @@ WEIGHT_DECAY = 0
 BATCH_SIZE = 64
 
 """Dataset Information """
-DATA_DIR = 'training_data/data/unique_graphs_with_links'
+# DATA_DIR = 'training_data/data/task_from_graph_tensor'
 INPUT_FEATURES = 1                                             #Node Level Features
 # NUM_NODES = 32
 

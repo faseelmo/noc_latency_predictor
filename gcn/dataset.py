@@ -52,11 +52,12 @@ def load_data(data_dir, batch_size=100):
     return train_loader, valid_loader
 
 if __name__ == "__main__":
-    pickle_dir = 'training_data/data/unique_graphs_with_links'
+    # pickle_dir = 'training_data/data/unique_graphs_with_links'
+    pickle_dir = 'training_data/data/task_from_graph_tensor'
     dataset = CustomData(pickle_dir)
 
     print(f"Dataset size {len(dataset)}")
-    data = dataset[4]
+    data = dataset[100]
     print(type(data))
     print(data)
 
