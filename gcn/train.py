@@ -31,7 +31,7 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/new_model/"
+SAVE_RESULTS = "gcn/results/task_from_graph_mean/"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
