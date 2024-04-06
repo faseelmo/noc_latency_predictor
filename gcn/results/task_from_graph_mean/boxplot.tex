@@ -1,0 +1,540 @@
+% This file was created with tikzplotlib v0.10.1.
+\begin{tikzpicture}
+
+\definecolor{crimson}{RGB}{220,20,60}
+\definecolor{darkgray176}{RGB}{176,176,176}
+\definecolor{darkorange25512714}{RGB}{255,127,14}
+\definecolor{lightgray204}{RGB}{204,204,204}
+\definecolor{steelblue31119180}{RGB}{31,119,180}
+
+\begin{axis}[
+legend cell align={left},
+legend style={
+  fill opacity=0.8,
+  draw opacity=1,
+  text opacity=1,
+  at={(0.03,0.97)},
+  anchor=north west,
+  draw=lightgray204
+},
+tick align=outside,
+tick pos=left,
+title={Boxplot of Latecy Distribution},
+x grid style={darkgray176},
+xlabel={Distribution Index},
+xmin=0.5, xmax=10.5,
+xtick style={color=black},
+y grid style={darkgray176},
+ylabel={Latency},
+ymin=1288.45, ymax=3346.55,
+ytick style={color=black}
+]
+\addplot [draw=crimson, fill=crimson, mark=diamond*, only marks]
+table{%
+x  y
+1 2112.75463867188
+2 1679.44689941406
+3 2450.79833984375
+4 2384.30834960938
+5 2264.62524414062
+6 1531.845703125
+7 1873.24499511719
+8 2156.61083984375
+9 2094.51196289062
+10 2253.54907226562
+};
+\addlegendentry{Predicted Latency}
+\addplot [draw=steelblue31119180, fill=steelblue31119180, mark=*, only marks]
+table{%
+x  y
+1 2032.99243164062
+2 1806.60522460938
+3 2127.15502929688
+4 2164.6943359375
+5 2160.30712890625
+6 1619.69348144531
+7 1630.34033203125
+8 2011.63232421875
+9 2038.46301269531
+10 1736.57934570312
+};
+\addlegendentry{Minimum Predicted Latency}
+\addplot [black, forget plot]
+table {%
+0.75 2010
+1.25 2010
+1.25 2165.5
+0.75 2165.5
+0.75 2010
+};
+\addplot [black, forget plot]
+table {%
+1 2010
+1 1997
+};
+\addplot [black, forget plot]
+table {%
+1 2165.5
+1 2356
+};
+\addplot [black, forget plot]
+table {%
+0.875 1997
+1.125 1997
+};
+\addplot [black, forget plot]
+table {%
+0.875 2356
+1.125 2356
+};
+\addplot [black, mark=o, mark size=3, mark options={solid,fill opacity=0}, only marks, forget plot]
+table {%
+1 2592
+1 2452
+1 2606
+1 2449
+};
+\addplot [black, forget plot]
+table {%
+1.75 1730.75
+2.25 1730.75
+2.25 1778.75
+1.75 1778.75
+1.75 1730.75
+};
+\addplot [black, forget plot]
+table {%
+2 1730.75
+2 1717
+};
+\addplot [black, forget plot]
+table {%
+2 1778.75
+2 1796
+};
+\addplot [black, forget plot]
+table {%
+1.875 1717
+2.125 1717
+};
+\addplot [black, forget plot]
+table {%
+1.875 1796
+2.125 1796
+};
+\addplot [black, mark=o, mark size=3, mark options={solid,fill opacity=0}, only marks, forget plot]
+table {%
+2 1923
+2 2027
+2 1914
+2 2031
+2 1949
+2 2021
+2 1925
+2 2031
+2 2012
+2 2030
+2 2039
+2 1950
+2 2029
+2 1876
+2 2043
+2 1954
+2 1935
+2 1921
+2 1926
+2 1969
+2 1918
+2 1936
+2 1951
+};
+\addplot [black, forget plot]
+table {%
+2.75 2386
+3.25 2386
+3.25 2407
+2.75 2407
+2.75 2386
+};
+\addplot [black, forget plot]
+table {%
+3 2386
+3 2372
+};
+\addplot [black, forget plot]
+table {%
+3 2407
+3 2422
+};
+\addplot [black, forget plot]
+table {%
+2.875 2372
+3.125 2372
+};
+\addplot [black, forget plot]
+table {%
+2.875 2422
+3.125 2422
+};
+\addplot [black, mark=o, mark size=3, mark options={solid,fill opacity=0}, only marks, forget plot]
+table {%
+3 2696
+3 2702
+3 2636
+3 2690
+3 2683
+3 2679
+3 2671
+3 2678
+3 2469
+3 2973
+3 2996
+3 2675
+3 2666
+3 2683
+3 2621
+3 2672
+};
+\addplot [black, forget plot]
+table {%
+3.75 2342
+4.25 2342
+4.25 2377.75
+3.75 2377.75
+3.75 2342
+};
+\addplot [black, forget plot]
+table {%
+4 2342
+4 2332
+};
+\addplot [black, forget plot]
+table {%
+4 2377.75
+4 2413
+};
+\addplot [black, forget plot]
+table {%
+3.875 2332
+4.125 2332
+};
+\addplot [black, forget plot]
+table {%
+3.875 2413
+4.125 2413
+};
+\addplot [black, mark=o, mark size=3, mark options={solid,fill opacity=0}, only marks, forget plot]
+table {%
+4 2645
+4 2985
+4 2672
+4 2631
+4 2632
+4 2625
+4 2640
+4 2620
+4 2649
+4 2643
+4 2932
+4 2637
+4 2653
+4 2630
+4 2632
+4 2640
+4 2635
+4 2949
+4 2655
+4 2634
+4 2644
+4 2638
+4 2661
+};
+\addplot [black, forget plot]
+table {%
+4.75 2329
+5.25 2329
+5.25 2354.5
+4.75 2354.5
+4.75 2329
+};
+\addplot [black, forget plot]
+table {%
+5 2329
+5 2300
+};
+\addplot [black, forget plot]
+table {%
+5 2354.5
+5 2383
+};
+\addplot [black, forget plot]
+table {%
+4.875 2300
+5.125 2300
+};
+\addplot [black, forget plot]
+table {%
+4.875 2383
+5.125 2383
+};
+\addplot [black, mark=o, mark size=3, mark options={solid,fill opacity=0}, only marks, forget plot]
+table {%
+5 2441
+5 2615
+5 2629
+5 2471
+5 2624
+5 2632
+5 2505
+5 2393
+5 2614
+5 2517
+5 2524
+5 2621
+5 2611
+5 2638
+5 2492
+5 2635
+5 2698
+5 2628
+};
+\addplot [black, forget plot]
+table {%
+5.75 1400.75
+6.25 1400.75
+6.25 1658.25
+5.75 1658.25
+5.75 1400.75
+};
+\addplot [black, forget plot]
+table {%
+6 1400.75
+6 1382
+};
+\addplot [black, forget plot]
+table {%
+6 1658.25
+6 1969
+};
+\addplot [black, forget plot]
+table {%
+5.875 1382
+6.125 1382
+};
+\addplot [black, forget plot]
+table {%
+5.875 1969
+6.125 1969
+};
+\addplot [black, mark=o, mark size=3, mark options={solid,fill opacity=0}, only marks, forget plot]
+table {%
+6 2279
+6 2357
+6 2076
+6 2210
+};
+\addplot [black, forget plot]
+table {%
+6.75 1729
+7.25 1729
+7.25 1985.75
+6.75 1985.75
+6.75 1729
+};
+\addplot [black, forget plot]
+table {%
+7 1729
+7 1715
+};
+\addplot [black, forget plot]
+table {%
+7 1985.75
+7 2259
+};
+\addplot [black, forget plot]
+table {%
+6.875 1715
+7.125 1715
+};
+\addplot [black, forget plot]
+table {%
+6.875 2259
+7.125 2259
+};
+\addplot [black, forget plot]
+table {%
+7.75 2012
+8.25 2012
+8.25 2044
+7.75 2044
+7.75 2012
+};
+\addplot [black, forget plot]
+table {%
+8 2012
+8 2004
+};
+\addplot [black, forget plot]
+table {%
+8 2044
+8 2079
+};
+\addplot [black, forget plot]
+table {%
+7.875 2004
+8.125 2004
+};
+\addplot [black, forget plot]
+table {%
+7.875 2079
+8.125 2079
+};
+\addplot [black, mark=o, mark size=3, mark options={solid,fill opacity=0}, only marks, forget plot]
+table {%
+8 2184
+8 2141
+8 2305
+8 2334
+8 2308
+8 2136
+8 2335
+8 2320
+8 2517
+8 2314
+8 2531
+8 2203
+8 2328
+8 2305
+8 2306
+8 2313
+};
+\addplot [black, forget plot]
+table {%
+8.75 2005
+9.25 2005
+9.25 2028.5
+8.75 2028.5
+8.75 2005
+};
+\addplot [black, forget plot]
+table {%
+9 2005
+9 1995
+};
+\addplot [black, forget plot]
+table {%
+9 2028.5
+9 2058
+};
+\addplot [black, forget plot]
+table {%
+8.875 1995
+9.125 1995
+};
+\addplot [black, forget plot]
+table {%
+8.875 2058
+9.125 2058
+};
+\addplot [black, mark=o, mark size=3, mark options={solid,fill opacity=0}, only marks, forget plot]
+table {%
+9 2304
+9 2295
+9 2398
+9 2276
+9 2275
+9 2282
+9 2367
+9 2212
+9 2311
+9 2203
+9 2191
+};
+\addplot [black, forget plot]
+table {%
+9.75 2039.75
+10.25 2039.75
+10.25 2349.5
+9.75 2349.5
+9.75 2039.75
+};
+\addplot [black, forget plot]
+table {%
+10 2039.75
+10 2023
+};
+\addplot [black, forget plot]
+table {%
+10 2349.5
+10 2761
+};
+\addplot [black, forget plot]
+table {%
+9.875 2023
+10.125 2023
+};
+\addplot [black, forget plot]
+table {%
+9.875 2761
+10.125 2761
+};
+\addplot [black, mark=o, mark size=3, mark options={solid,fill opacity=0}, only marks, forget plot]
+table {%
+10 3041
+10 2848
+10 3253
+10 2862
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+0.75 2024.5
+1.25 2024.5
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+1.75 1742.5
+2.25 1742.5
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+2.75 2393
+3.25 2393
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+3.75 2348
+4.25 2348
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+4.75 2337
+5.25 2337
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+5.75 1418.5
+6.25 1418.5
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+6.75 1739
+7.25 1739
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+7.75 2018
+8.25 2018
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+8.75 2013.5
+9.25 2013.5
+};
+\addplot [darkorange25512714, forget plot]
+table {%
+9.75 2061
+10.25 2061
+};
+\end{axis}
+
+\end{tikzpicture}

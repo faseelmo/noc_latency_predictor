@@ -10,6 +10,7 @@ import time
 import pickle
 import sys
 import math
+import shutil
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
@@ -31,13 +32,16 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/results/task_from_graph_mean/"
+SAVE_RESULTS = "gcn/results/task_from_graph_filtered/"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
     print(f"Folder '{SAVE_RESULTS}' created.")
 else:
     print(f"Folder '{SAVE_RESULTS}' already exists.")
+
+# Copy model.py to the results folder
+shutil.copy2('gcn/model.py', f'{SAVE_RESULTS}/train.py')
 
 def train_fn(train_loader, model, optimizer, loss_fn): 
     loop = tqdm(train_loader, leave=True)
@@ -136,9 +140,9 @@ def main():
             learning_rate = 0.0005
             print(f"Learning Rate Changed to {learning_rate}")
 
-        if (epoch+1) == 100: 
-            learning_rate = 0.0001
-            print(f"Learning Rate Changed to {learning_rate}")
+        # if (epoch+1) == 100: 
+        #     learning_rate = 0.0001
+        #     print(f"Learning Rate Changed to {learning_rate}")
 
         # if (epoch+1) == 8: 
         #     learning_rate = 1e-5
