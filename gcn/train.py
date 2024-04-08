@@ -19,7 +19,7 @@ EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
-BATCH_SIZE = 64
+BATCH_SIZE = 203
 
 """Dataset Information """
 # DATA_DIR = 'training_data/data/task_from_graph_tensor'
@@ -140,9 +140,9 @@ def main():
             learning_rate = 0.0005
             print(f"Learning Rate Changed to {learning_rate}")
 
-        # if (epoch+1) == 100: 
-        #     learning_rate = 0.0001
-        #     print(f"Learning Rate Changed to {learning_rate}")
+        if (epoch+1) == 150: 
+            learning_rate = 0.0001
+            print(f"Learning Rate Changed to {learning_rate}")
 
         # if (epoch+1) == 8: 
         #     learning_rate = 1e-5
