@@ -23,7 +23,7 @@ BATCH_SIZE = 64
 
 """Dataset Information """
 # DATA_DIR = 'training_data/data/task_from_graph_tensor'
-INPUT_FEATURES = 1                                             #Node Level Features
+INPUT_FEATURES = 3                                             #Node Level Features
 # NUM_NODES = 32
 
 """Load Model"""
@@ -32,7 +32,7 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/results/task_from_graph_filtered/"
+SAVE_RESULTS = "gcn/results/task_from_graph/mean"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
@@ -41,7 +41,7 @@ else:
     print(f"Folder '{SAVE_RESULTS}' already exists.")
 
 # Copy model.py to the results folder
-shutil.copy2('gcn/model.py', f'{SAVE_RESULTS}/train.py')
+shutil.copy2('gcn/model.py', f'{SAVE_RESULTS}/model.py')
 
 def train_fn(train_loader, model, optimizer, loss_fn): 
     loop = tqdm(train_loader, leave=True)
@@ -106,7 +106,7 @@ def main():
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
     
 
-    model = GCN().to(DEVICE)
+    model = GCN(num_node_features=INPUT_FEATURES).to(DEVICE)
     # model = GCN()
     # model = nn.DataParallel(model).to(DEVICE)
 
