@@ -19,7 +19,7 @@ EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
-BATCH_SIZE = 203
+BATCH_SIZE = 128
 
 """Dataset Information """
 # DATA_DIR = 'training_data/data/task_from_graph_tensor'
@@ -32,7 +32,7 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/results/task_from_graph/mean"
+SAVE_RESULTS = "gcn/results/task_from_graph/upto_q2"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
@@ -144,13 +144,13 @@ def main():
             learning_rate = 0.0001
             print(f"Learning Rate Changed to {learning_rate}")
 
-        # if (epoch+1) == 8: 
-        #     learning_rate = 1e-5
-        #     print(f"Learning Rate Changed to {learning_rate}")
+        if (epoch+1) == 250: 
+            learning_rate = 0.00005
+            print(f"Learning Rate Changed to {learning_rate}")
 
-        # if (epoch+1) == 10: 
-        #     learning_rate = 5e-6
-        #     print(f"Learning Rate Changed to {learning_rate}")
+        if (epoch+1) == 350: 
+            learning_rate = 0.00001
+            print(f"Learning Rate Changed to {learning_rate}")
 
         if (epoch+1) % 50 == 0 or (epoch+1) == 1:
             torch.save(model, f'{SAVE_RESULTS}/LatNet_{epoch+1}.pth')
@@ -160,7 +160,7 @@ def main():
             print(f"\nTraining Time: {time_elapsed} minutes\n")
 
     torch.save(model.state_dict(), f'{SAVE_RESULTS}/LatNet_state_dict.pth')
-    torch.save(model, 'gcn/current_model/LatNet_final.pth')
+    torch.save(model, f'{SAVE_RESULTS}/LatNet_final.pth')
     end_time = time.time()
     time_elapsed = (end_time - start_time) / 60
     print(f"\nFinal Training Time: {time_elapsed} minutes\n")
