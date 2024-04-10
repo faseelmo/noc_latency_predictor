@@ -24,11 +24,8 @@ sudo ./attach.sh
 To detach from the container press `Ctrl + P` followed by `Ctrl + Q`
 
 ### GNN based on-chip Network Latency Analysis
-#### Results
-The results of each training iteration can be found in the directory `gcn/results`.
+#### Dataset 
 The table below summarizes the results and the source of their training data.  
-Each of these folders contains a jupyter notebook called `analysis.ipynb` with the results. 
-
 <table>
 <tr>
     <th>Folder</th>
@@ -37,29 +34,54 @@ Each of these folders contains a jupyter notebook called `analysis.ipynb` with t
 </tr>
 <tr>
     <td>application_latency_model</td>
-    <td>task_7</td>
-    <td>Generated using data-generation framework. Each graph has 7 <br>
-        nodes (excluding 'Start' and 'Exit' node).
+    <td><i>task_7</i></td>
+    <td>Generated using data-generation framework.  <br>
+        Each graph has 7 nodes (excluding 'Start' and 'Exit' node).
     </td>
 </tr>
 <tr>
     <td>map_latency_model</td>
-    <td>unique_graphs_with_links</td>
+    <td><i>unique_graphs_with_links</i></td>
     <td>Extract all the unique (non-isomorphic) graphs from task_7. <br>
-        For each task, we create 200 maps with links between nodes <br>
-        characterizing communication delay. (see analysis.ipynb).
+        For each task, we create 200 maps with links between nodes characterizing communication delay (see analysis.ipynb)
     </td>
 </tr>
 <tr>
     <td>task_from_graph</td>
-    <td>task_from_graph</td>
-    <td>From the unique graph, we create 100 mappings per graph <br>
-        and find their latencies using the data-generation pipeline <br>
+    <td><i>task_from_graph</i></td>
+    <td>From the unique graph, we create 100 mappings per graph 
+        and find their latencies using the data-generation pipeline 
         for a more non-biased dataset.
     </td>
 </tr>
 </table>
 
+#### Input Node Feature
+All the training data is converted to the object torch_geometric.data.Data. 
+The following table summarizes the input feature for each dataset. 
+<table>
+<tr>
+    <th>Training Data</th>
+    <th>Input Feature</th>
+</tr>
+<tr>
+    <td><i>task_7</i></td>
+    <td>Delay of processing element (PE). Fixed to 10 here.</td>
+</tr>
+<tr>
+    <td><i>unique_graphs_with_links</i></td>
+    <td>Each node (PE or communication link) has its corresponding delay plus its correspoding type (PE or communication link) <br>
+    'Start' and 'Exit' node considered to be of type PE. 
+    </td>
+</tr>
+<tr>
+    <td><i>task_from_graph</i></td>
+    <td>Each node has its type as one-hot encoding. Types can be 'Start' node, 'Exit' node, or 'PE' node. </td>
+</tr>
+</table>
 
+
+#### Results
+The directory `gcn/results` contains the results of each training iteration. Inside each of these folders, you can find a Jupyter notebook named `analysis.ipynb`, with the corresponding results.
 
 
