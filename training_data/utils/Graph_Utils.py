@@ -12,46 +12,51 @@ class GraphUtils():
         self.dag_z = 2
 
         processing_element, router = self.init_network(network)
+        self.last_pe_index = max(processing_element.keys())
+
         self.network_graph = self.generate_network_graph(
             processing_element, router)
 
     def dag_on_network(self, dag, map) -> nx.Graph:
+        # type(dag) -> DAG()
 
-        print(dag.position)
-        dag_graph = dag.graph
+        # Need to rename otherwise network graph
+        # and dag graph will have same node names
+        renamed_dag_graph, new_pos, new_map = self.create_rename_map(dag, map)
+
+
+        dag_graph = nx.relabel_nodes(dag.graph, renamed_dag_graph)
+        node_pos = dag.position
 
         new_pos = {}
         # Adding Z coordinate to the nodes
         for node in dag.position:
             new_pos[node] = (dag.position[node][0],
                              dag.position[node][1], self.dag_z)
-        
-        nx.set_node_attributes(dag_graph, new_pos, 'pos')
 
-        # pos = nx.get_node_attributes(dag_graph, 'pos')
-        # type = nx.get_node_attributes(dag_graph, 'type')
+        nx.set_node_attributes(dag_graph, new_pos, 'pos')
 
         # Adding dag to network graph
         network_graph = copy.deepcopy(self.network_graph)
 
         for node in dag_graph.nodes():
-            network_graph.add_node(node, pos=dag_graph.nodes[node]['pos'], type='dag')
+            network_graph.add_node(
+                node, pos=dag_graph.nodes[node]['pos'], type='dag')
 
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
-        
-        pos  = nx.get_node_attributes(network_graph, 'pos')
+
+        pos = nx.get_node_attributes(network_graph, 'pos')
         for node, coordinates in pos.items():
             ax.scatter(*coordinates, color='g')
 
-        for edge in network_graph.edges(): 
+        for edge in network_graph.edges():
             x = [pos[edge[0]][0], pos[edge[1]][0]]
             y = [pos[edge[0]][1], pos[edge[1]][1]]
             z = [pos[edge[0]][2], pos[edge[1]][2]]
             ax.plot(x, y, z, color='k')
 
         plt.show()
-        
 
         return network_graph
 
@@ -87,6 +92,45 @@ class GraphUtils():
 
         return G
 
+    def create_rename_map(self, dag, map) -> tuple:
+        # Renaming the nodes of the dag_graph 
+        # Renames the position dictionary accordingly
+        # Renames mapping dictionary accordingly
+
+        dag_graph = dag.graph
+        dag_position = dag.position
+
+        rename_dict = {}
+        new_map = {}
+
+        num_of_nodes = dag_graph.number_of_nodes()
+        last_pe_index = self.last_pe_index
+
+        for node in dag_graph.nodes():
+            if node == "Start":
+                rename_dict[node] = last_pe_index + 1
+            elif node == "Exit":
+                rename_dict[node] = last_pe_index + num_of_nodes
+            else:
+                rename_dict[node] = last_pe_index + node + 1
+
+        new_pos = {}
+        for old_key, value in dag_position.items():
+            new_key = rename_dict[old_key]
+            new_pos[new_key] = value
+
+        for task, pe in map.items():
+            if task == 0:
+                updated_node = rename_dict['Start']
+            elif task == num_of_nodes - 1:
+                updated_node = rename_dict['Exit']
+            else:
+                updated_node = rename_dict[task]
+
+            new_map[updated_node] = pe
+
+        return rename_dict, new_pos, new_map
+
     def visualize_network_3d(self, graph_=None) -> None:
         # 3D drawing
 
@@ -107,8 +151,9 @@ class GraphUtils():
                 ax.scatter(*coordinates, color='r')
             elif node_type == 'task':
                 ax.scatter(*coordinates, color='g')
-            else: 
-                raise NotImplementedError("Node type not supported in visualization_network_3d()")
+            else:
+                raise NotImplementedError(
+                    "Node type not supported in visualization_network_3d()")
 
         # Draw edges
         for edge in G.edges():
@@ -154,14 +199,11 @@ if __name__ == '__main__':
     dag_dir = 'data/task_7/1.pickle'
     dag = pickle.load(open(dag_dir, 'rb'))
 
-    dag_network = dag['network']
-    dag_graph = dag['task_dag']
-    dag_map = dag['map']
+    data_network = dag['network']
+    data_dag = dag['task_dag']
+    data_map = dag['map']
 
-    graph = GraphUtils(dag_network)
+    graph = GraphUtils(data_network)
     # graph.visualize_network_3d()
-    dag_on_network = graph.dag_on_network(dag_graph, map)
+    dag_on_network = graph.dag_on_network(data_dag, data_map)
     # graph.visualize_network_3d(dag_on_network)
-
-    print(dag_network)
-    print(dag)
