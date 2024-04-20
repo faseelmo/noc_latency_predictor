@@ -15,6 +15,3 @@ training_data/ratatoskr/VCUsage
 training_data/.ipynb_checkpoints
 training_data/data/*
 !training_data/data/non_iso_graphs.zip
-
-gcn/new_model/
-gcn/data/
