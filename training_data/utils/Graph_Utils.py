@@ -9,7 +9,9 @@ class GraphUtils():
 
         self.router_z = 0
         self.processing_element_z = 0.5
-        self.dag_z = 2
+        self.dag_z = 1
+        # of a 4x4 network, used for normalization of task coordinates
+        self.max_network_coordinate_value = 3
 
         processing_element, router = self.init_network(network)
         self.last_pe_index = max(processing_element.keys())
@@ -18,45 +20,47 @@ class GraphUtils():
             processing_element, router)
 
     def dag_on_network(self, dag, map) -> nx.Graph:
-        # type(dag) -> DAG()
+        """ type(dag) -> DAG() """
 
-        # Need to rename otherwise network graph
-        # and dag graph will have same node names
-        renamed_dag_graph, new_pos, new_map = self.create_rename_map(dag, map)
+        """ Need to rename otherwise network graph
+        and dag graph will have same node names"""
+        rename_dict, new_pos, new_map = self.create_rename_map(dag, map)
+        dag_graph = nx.relabel_nodes(dag.graph, rename_dict)
+        # print(f"Renamed Nodes: {rename_dict}")
+        # print(f"Old nodes with postion: {dag.position}")
+        # print(f"New nodes with postion: {new_pos}")
+        # print(f"Old map: {map}")
+        # print(f"New map: {new_map}")
+        # print(f"Old graph: {dag.graph.nodes()}")
+        # print(f"New graph: {dag_graph.nodes()}")
+        # print(f"Node with Attributes {dag_graph.nodes(data=True)}")
+        # print(f"Node with Edge Attributes {dag_graph.edges(data=True)}")
 
+        """Adding Z coordinates to the new_pos
+        Need to normalize the coordinates of the dag so that 
+        they all fit in the same network graph
+        """
+        max_current_coordinate = max(max(pos) for pos in new_pos.values())
+        scaling_factor = self.max_network_coordinate_value / max_current_coordinate
 
-        dag_graph = nx.relabel_nodes(dag.graph, renamed_dag_graph)
-        node_pos = dag.position
+        new_pos_with_z = {}
+        for node, pos in new_pos.items():
+            new_pos_with_z[node] = (
+                pos[0]*scaling_factor, pos[1]*scaling_factor, self.dag_z)
 
-        new_pos = {}
-        # Adding Z coordinate to the nodes
-        for node in dag.position:
-            new_pos[node] = (dag.position[node][0],
-                             dag.position[node][1], self.dag_z)
+        """Code below includes "pos" as a node attribute in the dag_graph
+        along with delay"""
+        nx.set_node_attributes(dag_graph, new_pos_with_z, 'pos')
 
-        nx.set_node_attributes(dag_graph, new_pos, 'pos')
+        """Demand is an edge attribute right now, think about how to use it
+        Maybe assign this to a node (reprsenting link) inserted inbetween exisiting nodes"""
 
-        # Adding dag to network graph
+        """Adding the dag to the network graph"""
         network_graph = copy.deepcopy(self.network_graph)
-
         for node in dag_graph.nodes():
-            network_graph.add_node(
-                node, pos=dag_graph.nodes[node]['pos'], type='dag')
-
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
-
-        pos = nx.get_node_attributes(network_graph, 'pos')
-        for node, coordinates in pos.items():
-            ax.scatter(*coordinates, color='g')
-
-        for edge in network_graph.edges():
-            x = [pos[edge[0]][0], pos[edge[1]][0]]
-            y = [pos[edge[0]][1], pos[edge[1]][1]]
-            z = [pos[edge[0]][2], pos[edge[1]][2]]
-            ax.plot(x, y, z, color='k')
-
-        plt.show()
+            """type='task' could be changed later to 3 different types
+            (start, task, end)"""
+            network_graph.add_node(node, pos=new_pos_with_z[node], type='task')
 
         return network_graph
 
@@ -64,25 +68,25 @@ class GraphUtils():
 
         G = nx.Graph()
 
-        # Adding the nodes with their coordinates adn type
+        """ Adding the nodes with their coordinates and type """
         for node, coordinates in router.items():
             G.add_node(node, pos=coordinates, type='router')
 
         for node, coordinates in processing_element.items():
             G.add_node(node, pos=coordinates, type='pe')
 
-        # Adding Edges (Mesh Topology)
-        # Maybe there's a better way to do this. But its not real time critical.
-        # Only used for visualization
+        """ Adding Edges (Mesh Topology)
+        Maybe there's a better way to do this. But its not real time critical.
+        Only used for visualization"""
         for src_node, src_coordinates in router.items():
-            # coordinates -> (x, y, z)
+            """ coordinates -> (x, y, z)"""
             for dest_node, dest_coordinates in router.items():
                 euc_dist = ((src_coordinates[0] - dest_coordinates[0]) **
                             2 + (src_coordinates[1] - dest_coordinates[1])**2)**0.5
                 if euc_dist == 1:
                     G.add_edge(src_node, dest_node)
 
-        # Adding Edges between PE and Router
+        """ Adding Edges between PE and Router"""
         for src_node, src_coordinates in processing_element.items():
             src_x, src_y, src_z = src_coordinates
             for dest_node, dest_coordinates in router.items():
@@ -93,9 +97,9 @@ class GraphUtils():
         return G
 
     def create_rename_map(self, dag, map) -> tuple:
-        # Renaming the nodes of the dag_graph 
-        # Renames the position dictionary accordingly
-        # Renames mapping dictionary accordingly
+        """ Renaming the nodes of the dag_graph
+        Renames the position dictionary accordingly
+        Renames mapping dictionary accordingly"""
 
         dag_graph = dag.graph
         dag_position = dag.position
@@ -132,16 +136,20 @@ class GraphUtils():
         return rename_dict, new_pos, new_map
 
     def visualize_network_3d(self, graph_=None) -> None:
-        # 3D drawing
 
         if graph_ is None:
             G = self.network_graph
         else:
             G = graph_
 
-        pos = nx.get_node_attributes(self.network_graph, 'pos')
+        pos = nx.get_node_attributes(G, 'pos')
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
+
+        # Set the limits of the axes
+        # ax.set_xlim([0, 15])
+        # ax.set_ylim([0, 15])
+        # ax.set_zlim([0, 2])
 
         for node, coordinates in pos.items():
             node_type = G.nodes[node]['type']
@@ -206,4 +214,4 @@ if __name__ == '__main__':
     graph = GraphUtils(data_network)
     # graph.visualize_network_3d()
     dag_on_network = graph.dag_on_network(data_dag, data_map)
-    # graph.visualize_network_3d(dag_on_network)
+    graph.visualize_network_3d(dag_on_network)
