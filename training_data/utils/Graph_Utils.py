@@ -48,7 +48,7 @@ class GraphUtils():
             new_pos_with_z[node] = (
                 pos[0]*scaling_factor, pos[1]*scaling_factor, self.dag_z)
 
-        """Code below includes "pos" as a node attribute in the dag_graph
+        """Code below adds "pos" as a node attribute in the dag_graph
         along with delay"""
         nx.set_node_attributes(dag_graph, new_pos_with_z, 'pos')
 
@@ -61,6 +61,10 @@ class GraphUtils():
             """type='task' could be changed later to 3 different types
             (start, task, end)"""
             network_graph.add_node(node, pos=new_pos_with_z[node], type='task')
+
+        for node in dag_graph.nodes():
+            for neighbor in dag_graph.neighbors(node):
+                network_graph.add_edge(node, neighbor)
 
         return network_graph
 
@@ -209,6 +213,7 @@ if __name__ == '__main__':
 
     data_network = dag['network']
     data_dag = dag['task_dag']
+    data_dag.plot(show_node_attrib=False)
     data_map = dag['map']
 
     graph = GraphUtils(data_network)
