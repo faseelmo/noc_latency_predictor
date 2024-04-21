@@ -62,9 +62,14 @@ class GraphUtils():
             (start, task, end)"""
             network_graph.add_node(node, pos=new_pos_with_z[node], type='task')
 
+        """Connecting the edges of the dag"""
         for node in dag_graph.nodes():
             for neighbor in dag_graph.neighbors(node):
                 network_graph.add_edge(node, neighbor)
+
+        """Connecting the dag to the network graph"""
+        for node, pe in new_map.items():
+            network_graph.add_edge(node, pe)
 
         return network_graph
 
