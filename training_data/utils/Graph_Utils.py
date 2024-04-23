@@ -162,26 +162,41 @@ class GraphUtils():
 
         for node, coordinates in pos.items():
             node_type = G.nodes[node]['type']
+            num_node_connection = len(G.edges(node))
             if node_type == 'router':
                 ax.scatter(*coordinates, color='b')
             elif node_type == 'pe':
-                ax.scatter(*coordinates, color='r')
+                if num_node_connection > 1:
+                    ax.scatter(*coordinates, color='r')  # Regular red
+                else:
+                    ax.scatter(*coordinates, color=(0.4, 0, 0))  # Darker red
             elif node_type == 'task':
                 ax.scatter(*coordinates, color='g')
             else:
                 raise NotImplementedError(
                     "Node type not supported in visualization_network_3d()")
 
-        # Draw edges
         for edge in G.edges():
+            source_node, destination_node = edge
+            source_node_type = G.nodes[source_node]['type']
+            destination_node_type = G.nodes[destination_node]['type']
+
             x = [pos[edge[0]][0], pos[edge[1]][0]]
             y = [pos[edge[0]][1], pos[edge[1]][1]]
             z = [pos[edge[0]][2], pos[edge[1]][2]]
-            ax.plot(x, y, z, color='k')
 
+            if source_node_type == 'task' and destination_node_type == 'task':
+                ax.plot(x, y, z, color='g')  # Green
+            elif set((source_node_type, destination_node_type)) == {'router', 'pe'}:
+                ax.plot(x, y, z, color='0.75')  # Light gray
+            elif source_node_type == 'router' and destination_node_type == 'router':
+                ax.plot(x, y, z, color='0.75')  # Light gray
+            elif set((source_node_type, destination_node_type)) == {'task', 'pe'}:
+                ax.plot(x, y, z, color=('y'))  # Yellow
+            else: 
+                raise NotImplementedError(
+                    "Edge type not supported in visualization_network_3d()")
         plt.show()
-        # plt.waitforbuttonpress(0)
-        # plt.close()
 
     def init_network(self, network) -> tuple:
         if network == int(4):
@@ -212,14 +227,21 @@ class GraphUtils():
 
 
 if __name__ == '__main__':
+    
     import pickle
-    dag_dir = 'data/task_7/1.pickle'
+    import sys
+
+    default_index = 1
+    index = int(sys.argv[1]) if len(sys.argv) > 1 else default_index
+    
+    dag_dir = f'data/task_7/{index}.pickle'
     dag = pickle.load(open(dag_dir, 'rb'))
 
     data_network = dag['network']
     data_dag = dag['task_dag']
-    data_dag.plot(show_node_attrib=False)
     data_map = dag['map']
+
+    # data_dag.plot(show_node_attrib=False)
 
     graph = GraphUtils(data_network)
     # graph.visualize_network_3d()
