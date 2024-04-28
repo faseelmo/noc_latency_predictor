@@ -50,7 +50,8 @@ class GraphUtils():
         category_dict = {
             'router': 0,
             'pe': 1,
-            'task': 2
+            'task': 2,
+            'link': 3
         }
 
         """ Creating a list of node features (for one-hot encoding) """
@@ -73,12 +74,8 @@ class GraphUtils():
         """
             for peace of mind, you can check if the edge index is the 
             same by converting it back to networkx (if not converted and are using the original 
-            the order of edges might be different)
-            check if graph_tensor.edge_index.t() == nx_graph.edges
-
-            graph_networkx = to_networkx(graph_tensor)
-            for graph_edge, tensor_edge in zip(graph_networkx.edges, graph_tensor.edge_index.t()):
-                assert graph_edge == tuple(tensor_edge.tolist())
+            the order of edges might be different) (post coding thought: convert the edgeview to list
+            and then sort?, look into create_link_nodes() for more info)
         """
         if debug:
             graph_networkx = to_networkx(graph_tensor)
@@ -87,7 +84,7 @@ class GraphUtils():
 
         return graph_tensor
 
-    def dag_on_network(self, dag, map) -> nx.Graph:
+    def dag_on_network(self, dag, map) -> tuple:
         """ type(dag) -> DAG() """
 
         """ Need to rename otherwise network graph
@@ -145,7 +142,38 @@ class GraphUtils():
         for node, pe in new_map.items():
             network_graph.add_edge(node, pe)
 
-        return network_graph
+        return network_graph, new_map
+
+    def create_link_nodes(self, graph, new_map) -> nx.Graph:
+        """
+        Inserting link nodes between the task nodes
+        Connect these link nodes to relevant routers
+        How to find the relevant routers?
+            - Check the src and dest task nodes of the link node 
+            - Check the mapping of the src and dest task nodes (to a pe node)
+            - Find the XY Routing between the src and dest pe nodes
+            - Connect the link node to the routers in the XY Routing
+        """
+
+        link_node_index = max(graph.nodes()) + 1
+        edges = list(graph.edges)
+        edges.sort()
+
+        for egde in edges:
+            src_node, dest_node = egde
+            if graph.nodes[src_node]['type'] == 'task' and graph.nodes[dest_node]['type'] == 'task':
+                link_pos_x = (graph.nodes[src_node]['pos']
+                              [0] + graph.nodes[dest_node]['pos'][0]) / 2
+                link_pos_y = (graph.nodes[src_node]['pos']
+                              [1] + graph.nodes[dest_node]['pos'][1]) / 2
+                link_pos = (link_pos_x, link_pos_y, self.dag_z)
+                graph.add_node(link_node_index, pos=link_pos, type='link')
+                link_node_index += 1
+
+        # for edge in 
+
+        self.visualize_network_3d(graph)
+        pass
 
     def generate_network_graph(self, processing_element, router) -> nx.Graph:
 
@@ -243,7 +271,9 @@ class GraphUtils():
                 else:
                     ax.scatter(*coordinates, color=(0.4, 0, 0))  # Darker red
             elif node_type == 'task':
-                ax.scatter(*coordinates, color='g')
+                ax.scatter(*coordinates, color=(0, 0.5, 0))  # Darker Green
+            elif node_type == 'link':
+                ax.scatter(*coordinates, color=(0, 1, 0))  # Light Green
             else:
                 raise NotImplementedError(
                     "Node type not supported in visualization_network_3d()")
@@ -327,14 +357,22 @@ if __name__ == '__main__':
     data_target = dag['network_processing_time']
 
     graph = GraphUtils(data_network)
-    # graph.visualize_network_3d() # Uncomment to visualize the network in 3d
-    dag_on_network = graph.dag_on_network(data_dag, data_map)
-    # Uncomment to visualize the network with the dag in 3d
-    graph.visualize_network_3d(dag_on_network)
-    graph_tensor = graph.generate_tensor(
-        dag_on_network, num_node_types=3, target=data_target)
+    dag_on_network, new_map = graph.dag_on_network(data_dag, data_map)
+    print(f"New Map: {new_map}")
 
+    # graph.visualize_network_3d()  # Uncomment to visualize the network in 3d
+    # graph.visualize_network_3d(dag_on_network) # Uncomment to visualize the network with the dag in 3d
+
+    graph_with_link_nodes = graph.create_link_nodes(dag_on_network, new_map)
+
+    graph_tensor = graph.generate_tensor(
+        dag_on_network, num_node_types=4, target=data_target)
+
+    """Checking the validity of the graph"""
     print(f"Graphs is directed: {graph_tensor.is_directed()}")
     print(f"Graph has self loops: {graph_tensor.has_self_loops()}")
     print(f"Graph has isolated nodes: {graph_tensor.has_isolated_nodes()}")
     print(f"Graph is valid: {graph_tensor.validate()}")
+
+    # from torch_geometric.utils import to_dense_adj
+    # print(f"Adjacency matrix: {to_dense_adj(graph_tensor.edge_index).squeeze(0)}")
