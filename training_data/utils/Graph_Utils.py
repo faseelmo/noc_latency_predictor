@@ -144,7 +144,7 @@ class GraphUtils():
 
         return network_graph, new_map
 
-    def create_link_nodes(self, graph, new_map) -> nx.Graph:
+    def create_link_nodes(self, graph, map) -> nx.Graph:
         """
         Inserting link nodes between the task nodes
         Connect these link nodes to relevant routers
@@ -152,6 +152,11 @@ class GraphUtils():
             - Check the src and dest task nodes of the link node 
             - Check the mapping of the src and dest task nodes (to a pe node)
             - Find the XY Routing between the src and dest pe nodes
+                - Get the coordinates of the src and dest pe
+                - Move in the X direction till the x coordinates of src 
+                    and dest match 
+                - Then move in the Y direction till the current coordinate and 
+                    the dest coordinate match
             - Connect the link node to the routers in the XY Routing
         """
 
@@ -159,9 +164,16 @@ class GraphUtils():
         edges = list(graph.edges)
         edges.sort()
 
-        for egde in edges:
-            src_node, dest_node = egde
+        for edge in edges:
+            """
+            src is always less than dest ? In our application yes?
+            """
+            src_node, dest_node = min(edge), max(edge)
+
+            """ Checking if the nodes are task nodes"""
             if graph.nodes[src_node]['type'] == 'task' and graph.nodes[dest_node]['type'] == 'task':
+
+                """ Adding link nodes between task nodes"""
                 link_pos_x = (graph.nodes[src_node]['pos']
                               [0] + graph.nodes[dest_node]['pos'][0]) / 2
                 link_pos_y = (graph.nodes[src_node]['pos']
@@ -170,9 +182,38 @@ class GraphUtils():
                 graph.add_node(link_node_index, pos=link_pos, type='link')
                 link_node_index += 1
 
-        # for edge in 
+                """ Finding XY Routing between the src and dest pe nodes"""
+                src_pe = map[src_node]
+                dest_pe = map[dest_node]
+
+                src_coordinates = graph.nodes[src_pe]['pos']
+                dest_coordinates = graph.nodes[dest_pe]['pos']
+
+                print(f"src coordinates: {src_coordinates}")
+                print(f"dest coordinates: {dest_coordinates}")
+
+                path = []
+                """if src is on the left of dest, step_x is 1, else -1"""
+                step_x = 1 if src_coordinates[0] < dest_coordinates[0] else -1
+
+                current_coordinate = list(src_coordinates)
+                # Adding the src coordinates
+                path.append(tuple(current_coordinate))
+                while current_coordinate[0] != dest_coordinates[0]:
+                    current_coordinate[0] += step_x
+                    path.append(tuple(current_coordinate))
+
+                """if src is below dest, step_y is 1 (i.e we want to move up), else -1"""
+                step_y = 1 if current_coordinate[1] < dest_coordinates[1] else -1
+                while current_coordinate[1] != dest_coordinates[1]:
+                    current_coordinate[1] += step_y
+                    path.append(tuple(current_coordinate))
+
+                print(f"\nsrc node: {src_node}, dest node: {dest_node}")
+                print(f"For src {src_pe} and dest {dest_pe}, path is {path}")
 
         self.visualize_network_3d(graph)
+                # break
         pass
 
     def generate_network_graph(self, processing_element, router) -> nx.Graph:
