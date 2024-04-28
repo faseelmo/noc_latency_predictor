@@ -1,7 +1,31 @@
+import copy
 from bidict import bidict
+
 import networkx as nx
 import matplotlib.pyplot as plt
-import copy
+
+import torch
+import torch.nn.functional as F
+from torch_geometric.data import Data
+from torch_geometric.utils.convert import from_networkx, to_networkx
+
+"""
+For usage of this class, refer to the main function at the bottom of the file
+
+Member functions:
+
+    init_network(self, network) -> tuple:
+
+    dag_on_network(self, dag, map) -> nx.Graph:
+
+    generate_tensor(self, nx_graph, num_node_types, target, debug=False) -> Data:
+
+    generate_network_graph(self, processing_element, router) -> nx.Graph:
+
+    create_rename_map(self, dag, map) -> tuple:
+
+    visualize_network_3d(self, graph_=None) -> None:
+"""
 
 
 class GraphUtils():
@@ -19,11 +43,61 @@ class GraphUtils():
         self.network_graph = self.generate_network_graph(
             processing_element, router)
 
+    def generate_tensor(self, nx_graph, num_node_types, target, debug=False) -> Data:
+        """nx_graph modified in this function."""
+
+        """ Dictionary for unique node types """
+        category_dict = {
+            'router': 0,
+            'pe': 1,
+            'task': 2
+        }
+
+        """ Creating a list of node features (for one-hot encoding) """
+        node_features = []
+        for node in nx_graph.nodes():
+            node_type = nx_graph.nodes[node]['type']
+            node_features.append(category_dict[node_type])
+            # Clearing node attributes for converting to PyTorch Geometric later
+            nx_graph.nodes[node].clear()
+
+        """ One-hot encoding Node types """
+        node_features_one_hot = F.one_hot(
+            torch.tensor(node_features), num_classes=num_node_types).to(torch.float)
+
+        """ Converting NetworkX graph to PyTorch Geometric """
+        graph_tensor = from_networkx(nx_graph)
+        graph_tensor.y = torch.tensor([float(target)])
+        graph_tensor.x = node_features_one_hot
+
+        """
+            for peace of mind, you can check if the edge index is the 
+            same by converting it back to networkx (if not converted and are using the original 
+            the order of edges might be different)
+            check if graph_tensor.edge_index.t() == nx_graph.edges
+
+            graph_networkx = to_networkx(graph_tensor)
+            for graph_edge, tensor_edge in zip(graph_networkx.edges, graph_tensor.edge_index.t()):
+                assert graph_edge == tuple(tensor_edge.tolist())
+        """
+        if debug:
+            graph_networkx = to_networkx(graph_tensor)
+            for graph_edge, tensor_edge in zip(graph_networkx.edges, graph_tensor.edge_index.t()):
+                assert graph_edge == tuple(tensor_edge.tolist())
+
+        return graph_tensor
+
     def dag_on_network(self, dag, map) -> nx.Graph:
         """ type(dag) -> DAG() """
 
         """ Need to rename otherwise network graph
-        and dag graph will have same node names"""
+        and dag graph will have same node names
+        task names 0-8, 
+        router name 0-15, 
+        pe names 16-31, 
+
+        so, we rename the task nodes to 32-40
+        """
         rename_dict, new_pos, new_map = self.create_rename_map(dag, map)
         dag_graph = nx.relabel_nodes(dag.graph, rename_dict)
         # print(f"Renamed Nodes: {rename_dict}")
@@ -107,8 +181,11 @@ class GraphUtils():
 
     def create_rename_map(self, dag, map) -> tuple:
         """ Renaming the nodes of the dag_graph
-        Renames the position dictionary accordingly
-        Renames mapping dictionary accordingly"""
+        - Renames the position dictionary accordingly
+        - Renames mapping dictionary accordingly
+        Why do we do this? 
+        check dag_on_network() comments for more info
+        """
 
         dag_graph = dag.graph
         dag_position = dag.position
@@ -155,11 +232,6 @@ class GraphUtils():
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        # Set the limits of the axes
-        # ax.set_xlim([0, 15])
-        # ax.set_ylim([0, 15])
-        # ax.set_zlim([0, 2])
-
         for node, coordinates in pos.items():
             node_type = G.nodes[node]['type']
             num_node_connection = len(G.edges(node))
@@ -175,6 +247,8 @@ class GraphUtils():
             else:
                 raise NotImplementedError(
                     "Node type not supported in visualization_network_3d()")
+
+            ax.text(*coordinates, f'{node}', color='black')
 
         for edge in G.edges():
             source_node, destination_node = edge
@@ -193,7 +267,7 @@ class GraphUtils():
                 ax.plot(x, y, z, color='0.75')  # Light gray
             elif set((source_node_type, destination_node_type)) == {'task', 'pe'}:
                 ax.plot(x, y, z, color=('y'))  # Yellow
-            else: 
+            else:
                 raise NotImplementedError(
                     "Edge type not supported in visualization_network_3d()")
         plt.show()
@@ -222,28 +296,45 @@ class GraphUtils():
 
         return processing_element, router
 
-    def visualize_dag_3d(self, graph):
-        print("Visualizing DAG in 3D")
-
 
 if __name__ == '__main__':
-    
+    """Takes in the argument of the index of the dag to be visualized"""
+
     import pickle
     import sys
 
     default_index = 1
     index = int(sys.argv[1]) if len(sys.argv) > 1 else default_index
-    
+
+    """Loading the simulation data from the pickle file"""
     dag_dir = f'data/task_7/{index}.pickle'
     dag = pickle.load(open(dag_dir, 'rb'))
 
+    """
+    Extracting data from the loaded pickle file
+    required data
+        1. network
+        2. task graph (task_dag)
+        3. mapping dictionary (map) (if task on top network)
+        4. network processing time (for regression target)
+    """
     data_network = dag['network']
+
     data_dag = dag['task_dag']
     data_map = dag['map']
+    # data_dag.plot(show_node_attrib=False) # Uncomment to visualize the task graph in 2d
 
-    # data_dag.plot(show_node_attrib=False)
+    data_target = dag['network_processing_time']
 
     graph = GraphUtils(data_network)
-    # graph.visualize_network_3d()
+    # graph.visualize_network_3d() # Uncomment to visualize the network in 3d
     dag_on_network = graph.dag_on_network(data_dag, data_map)
+    # Uncomment to visualize the network with the dag in 3d
     graph.visualize_network_3d(dag_on_network)
+    graph_tensor = graph.generate_tensor(
+        dag_on_network, num_node_types=3, target=data_target)
+
+    print(f"Graphs is directed: {graph_tensor.is_directed()}")
+    print(f"Graph has self loops: {graph_tensor.has_self_loops()}")
+    print(f"Graph has isolated nodes: {graph_tensor.has_isolated_nodes()}")
+    print(f"Graph is valid: {graph_tensor.validate()}")
