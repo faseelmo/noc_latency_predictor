@@ -14,17 +14,21 @@ For usage of this class, refer to the main function at the bottom of the file
 
 Member functions:
 
-    init_network(self, network) -> tuple:
+    init_network( network )                                             -> tuple    ( processing_element, router )
 
-    dag_on_network(self, dag, map) -> nx.Graph:
+    generate_network_graph()                                            -> nx.Graph
 
-    generate_tensor(self, nx_graph, num_node_types, target, debug=False) -> Data:
+    dag_on_network( dag, map )                                          -> tuple    ( network_graph, new_map )
 
-    generate_network_graph(self, processing_element, router) -> nx.Graph:
+    create_rename_map( dag, map)                                        -> tuple    ( rename_dict, new_pos, new_map )
 
-    create_rename_map(self, dag, map) -> tuple:
+    create_link_nodes( graph, map )                                     -> nx.Graph 
 
-    visualize_network_3d(self, graph_=None) -> None:
+    generate_tensor( nx_graph, num_node_types, target, debug=False )    -> Data
+
+    visualize_network_3d( graph_=None )                                 -> None
+
+
 """
 
 
@@ -36,12 +40,13 @@ class GraphUtils():
         self.dag_z = 1
         # of a 4x4 network, used for normalization of task coordinates
         self.max_network_coordinate_value = 3
+        self.processing_element = None
+        self.router = None
 
-        processing_element, router = self.init_network(network)
-        self.last_pe_index = max(processing_element.keys())
+        self.processing_element, self.router = self.init_network(network)
+        self.last_pe_index = max(self.processing_element.keys())
 
-        self.network_graph = self.generate_network_graph(
-            processing_element, router)
+        self.network_graph = self.generate_network_graph()
 
     def generate_tensor(self, nx_graph, num_node_types, target, debug=False) -> Data:
         """nx_graph modified in this function."""
@@ -186,62 +191,75 @@ class GraphUtils():
                 src_pe = map[src_node]
                 dest_pe = map[dest_node]
 
-                src_coordinates = graph.nodes[src_pe]['pos']
-                dest_coordinates = graph.nodes[dest_pe]['pos']
+                src_pe_coordinates = graph.nodes[src_pe]['pos']
+                dest_pe_coordinates = graph.nodes[dest_pe]['pos']
 
-                print(f"src coordinates: {src_coordinates}")
-                print(f"dest coordinates: {dest_coordinates}")
+                """ Need to change the z coordinate from pe to router """
+                router_coordinates = list(src_pe_coordinates)
+                router_coordinates[2] = self.router_z
 
-                path = []
+                path_in_coordinates = []
+
+                list_router_link_connection = []
+                list_router_link_connection.append(
+                    self.router.inverse[tuple(router_coordinates)])
+
                 """if src is on the left of dest, step_x is 1, else -1"""
-                step_x = 1 if src_coordinates[0] < dest_coordinates[0] else -1
+                step_x = 1 if src_pe_coordinates[0] < dest_pe_coordinates[0] else -1
 
-                current_coordinate = list(src_coordinates)
-                # Adding the src coordinates
-                path.append(tuple(current_coordinate))
-                while current_coordinate[0] != dest_coordinates[0]:
-                    current_coordinate[0] += step_x
-                    path.append(tuple(current_coordinate))
+                """Adding the src router coordinates to the path"""
+                path_in_coordinates.append(tuple(router_coordinates))
+                while router_coordinates[0] != dest_pe_coordinates[0]:
+                    """ trasnverse in x direction """
+                    router_coordinates[0] += step_x
+                    path_in_coordinates.append(tuple(router_coordinates))
+                    list_router_link_connection.append(
+                        self.router.inverse[tuple(router_coordinates)])
 
                 """if src is below dest, step_y is 1 (i.e we want to move up), else -1"""
-                step_y = 1 if current_coordinate[1] < dest_coordinates[1] else -1
-                while current_coordinate[1] != dest_coordinates[1]:
-                    current_coordinate[1] += step_y
-                    path.append(tuple(current_coordinate))
+                step_y = 1 if router_coordinates[1] < dest_pe_coordinates[1] else -1
+                while router_coordinates[1] != dest_pe_coordinates[1]:
+                    """ trasnverse in y direction """
+                    router_coordinates[1] += step_y
+                    path_in_coordinates.append(tuple(router_coordinates))
+                    list_router_link_connection.append(
+                        self.router.inverse[tuple(router_coordinates)])
+
+                """Connecting the link node to the routers in the XY Routing"""
+                # implementation here
 
                 print(f"\nsrc node: {src_node}, dest node: {dest_node}")
-                print(f"For src {src_pe} and dest {dest_pe}, path is {path}")
+                print(
+                    f"For src pe {src_pe} and dest pe {dest_pe}, path is {list_router_link_connection}")
 
         self.visualize_network_3d(graph)
-                # break
-        pass
 
-    def generate_network_graph(self, processing_element, router) -> nx.Graph:
+    def generate_network_graph(self) -> nx.Graph:
 
         G = nx.Graph()
 
         """ Adding the nodes with their coordinates and type """
-        for node, coordinates in router.items():
+        for node, coordinates in self.router.items():
             G.add_node(node, pos=coordinates, type='router')
 
-        for node, coordinates in processing_element.items():
+        for node, coordinates in self.processing_element.items():
             G.add_node(node, pos=coordinates, type='pe')
 
         """ Adding Edges (Mesh Topology)
         Maybe there's a better way to do this. But its not real time critical.
         Only used for visualization"""
-        for src_node, src_coordinates in router.items():
+        for src_node, src_coordinates in self.router.items():
             """ coordinates -> (x, y, z)"""
-            for dest_node, dest_coordinates in router.items():
+            for dest_node, dest_coordinates in self.router.items():
                 euc_dist = ((src_coordinates[0] - dest_coordinates[0]) **
                             2 + (src_coordinates[1] - dest_coordinates[1])**2)**0.5
                 if euc_dist == 1:
                     G.add_edge(src_node, dest_node)
 
         """ Adding Edges between PE and Router"""
-        for src_node, src_coordinates in processing_element.items():
+        for src_node, src_coordinates in self.processing_element.items():
             src_x, src_y, src_z = src_coordinates
-            for dest_node, dest_coordinates in router.items():
+            for dest_node, dest_coordinates in self.router.items():
                 dest_x, dest_y, dest_z = dest_coordinates
                 if src_x == dest_x and src_y == dest_y:
                     G.add_edge(src_node, dest_node)
