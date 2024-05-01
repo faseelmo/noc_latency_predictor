@@ -12,14 +12,14 @@ from torch_geometric.utils.convert import from_networkx, to_networkx
 """
 Usage ( for more info check main() ):
 
-graph                   =   GraphUtils              ( dag['network'] )
-dag_on_network, new_map =   graph.dag_on_network    ( dag['task_dag'], dag['map'] )
-graph_with_link_nodes   =   graph.create_link_nodes ( dag_on_network, new_map )
-graph_tensor            =   graph.generate_tensor   (
-                                                     dag_on_network, 
-                                                     num_node_types_    =   4, 
-                                                     target_            =   dag['network_processing_time']
-                                                    )
+    graph                   =   GraphUtils              ( dag['network'] )
+    dag_on_network, new_map =   graph.dag_on_network    ( dag['task_dag'], dag['map'] )
+    graph_with_link_nodes   =   graph.create_link_nodes ( dag_on_network, new_map )
+    graph_tensor            =   graph.generate_tensor   (
+                                                          dag_on_network,
+                                                          num_node_types_    =   4,
+                                                          target_            =   dag['network_processing_time']
+                                                        )
 
 Member functions:
 
@@ -31,7 +31,7 @@ Member functions:
 
     create_rename_map( dag_, map_ )                                         -> tuple    ( rename_dict, new_pos, new_map )
 
-    create_link_nodes( graph_, map_ )                                       -> nx.Graph 
+    create_link_nodes( graph_, map_ )                                       -> nx.Graph
 
     generate_tensor( nx_graph_, num_node_types_, target_, debug_=False )    -> Data
 
@@ -56,7 +56,7 @@ class GraphUtils():
 
         self.network_graph = self.generate_network_graph()
 
-    def generate_tensor(self, nx_graph_, num_node_types_, target_, debug_=False) -> Data:
+    def generate_tensor(self, nx_graph_, target_, debug_=False) -> Data:
         """nx_graph modified in this function."""
 
         """ Dictionary for unique node types """
@@ -64,7 +64,9 @@ class GraphUtils():
             'router': 0,
             'pe': 1,
             'task': 2,
-            'link': 3
+            'start_task': 3,
+            'end_task': 4,
+            'link': 5
         }
 
         """ Creating a list of node features (for one-hot encoding) """
@@ -77,7 +79,7 @@ class GraphUtils():
 
         """ One-hot encoding Node types """
         node_features_one_hot = F.one_hot(
-            torch.tensor(node_features), num_classes=num_node_types_).to(torch.float)
+            torch.tensor(node_features), num_classes=len(category_dict)).to(torch.float)
 
         """ Converting NetworkX graph to PyTorch Geometric """
         graph_tensor = from_networkx(nx_graph_)
@@ -85,9 +87,9 @@ class GraphUtils():
         graph_tensor.x = node_features_one_hot
 
         """
-            for peace of mind, you can check if the edge index is the 
-            same by converting it back to networkx (if not converted and are using the original 
-            the order of edges might be different) 
+            for peace of mind, you can check if the edge index is the
+            same by converting it back to networkx (if not converted and are using the original
+            the order of edges might be different)
             (post coding thought: convert the edgeview to list
             and then sort?, look into self.create_link_nodes() for more info)
         """
@@ -104,9 +106,9 @@ class GraphUtils():
 
         """ Need to rename otherwise network graph
         and dag graph will have same node names
-        task names 0-8, 
-        router name 0-15, 
-        pe names 16-31, 
+        task names 0-8,
+        router name 0-15,
+        pe names 16-31,
 
         so, we rename the task nodes to 32-40
         """
@@ -123,16 +125,18 @@ class GraphUtils():
         # print(f"Node with Edge Attributes {dag_graph.edges(data=True)}")
 
         """Adding Z coordinates to the new_pos
-        Need to normalize the coordinates of the dag so that 
+        Need to normalize the coordinates of the dag so that
         they all fit in the same network graph
+        max_dag_coordinate is the maximum coordinate (pos) value of the dag 
         """
-        max_current_coordinate = max(max(pos) for pos in new_pos.values())
-        scaling_factor = self.max_network_coordinate_value / max_current_coordinate
+        max_dag_coordinate = max(max(pos) for pos in new_pos.values())
+        scaling_factor = self.max_network_coordinate_value / max_dag_coordinate
 
         new_pos_with_z = {}
+        y_offset = self.max_network_coordinate_value // 2
         for node, pos in new_pos.items():
             new_pos_with_z[node] = (
-                pos[0]*scaling_factor, pos[1]*scaling_factor, self.dag_z)
+                pos[0]*scaling_factor, pos[1]*scaling_factor + y_offset, self.dag_z)
 
         """Code below adds "pos" as a node attribute in the dag_graph
         along with delay"""
@@ -144,9 +148,16 @@ class GraphUtils():
         """Adding the dag to the network graph"""
         network_graph = copy.deepcopy(self.network_graph)
         for node in dag_graph.nodes():
-            """type='task' could be changed later to 3 different types
-            (start, task, end)"""
-            network_graph.add_node(node, pos=new_pos_with_z[node], type='task')
+            """Task can be  3 types (start_task, task, end_task)"""
+            if node == self.last_pe_index + 1:
+                network_graph.add_node(
+                    node, pos=new_pos_with_z[node], type='start_task')
+            elif node == self.last_pe_index + len(dag_graph.nodes()):
+                network_graph.add_node(
+                    node, pos=new_pos_with_z[node], type='end_task')
+            else:
+                network_graph.add_node(
+                    node, pos=new_pos_with_z[node], type='task')
 
         """Connecting the edges of the dag"""
         for node in dag_graph.nodes():
@@ -165,13 +176,13 @@ class GraphUtils():
         Inserting link nodes between the task nodes
         Connect these link nodes to relevant routers
         How to find the relevant routers?
-            - Check the src and dest task nodes of the link node 
+            - Check the src and dest task nodes of the link node
             - Check the mapping of the src and dest task nodes (to a pe node)
             - Find the XY Routing between the src and dest pe nodes
                 - Get the coordinates of the src and dest pe
-                - Move in the X direction till the x coordinates of src 
-                    and dest match 
-                - Then move in the Y direction till the current coordinate and 
+                - Move in the X direction till the x coordinates of src
+                    and dest match
+                - Then move in the Y direction till the current coordinate and
                     the dest coordinate match
             - Connect the link node to the routers in the XY Routing
         """
@@ -281,7 +292,7 @@ class GraphUtils():
         """ Renaming the nodes of the dag_graph
         - Renames the position dictionary accordingly
         - Renames mapping dictionary accordingly
-        Why do we do this? 
+        Why do we do this?
         check dag_on_network() comments for more info
         """
 
@@ -330,25 +341,45 @@ class GraphUtils():
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
+        """Plotting Nodes"""
+        node_colors = {  # (r,g,b) 1 -> light, 0 -> dark
+            'router': 'b',
+            'pe': lambda num_connections: 'r' if num_connections > 1 else (0.4, 0, 0),
+            'task': (0, 0.5, 0),
+            'link': (0, 1, 0),
+            'start_task': (0, 0.8, 0),
+            'end_task': (0, 0.8, 0),
+        }
+
         for node, coordinates in pos.items():
             node_type = G.nodes[node]['type']
             num_node_connection = len(G.edges(node))
-            if node_type == 'router':
-                ax.scatter(*coordinates, color='b')
-            elif node_type == 'pe':
-                if num_node_connection > 1:
-                    ax.scatter(*coordinates, color='r')  # Regular red
-                else:
-                    ax.scatter(*coordinates, color=(0.4, 0, 0))  # Darker red
-            elif node_type == 'task':
-                ax.scatter(*coordinates, color=(0, 0.5, 0))  # Darker Green
-            elif node_type == 'link':
-                ax.scatter(*coordinates, color=(0, 1, 0))  # Light Green
-            else:
+
+            if node_type not in node_colors:
                 raise NotImplementedError(
                     "Node type not supported in visualization_network_3d()")
 
+            color = node_colors[node_type]
+
+            if callable(color):
+                """For PE nodes, color is based on the number of connections"""
+                color = color(num_node_connection)
+
+            ax.scatter(*coordinates, color=color)
             ax.text(*coordinates, f'{node}', color='black')
+
+        """Plotting Edges"""
+        edge_colors = {
+            frozenset(['task', 'task']): 'g',
+            frozenset(['start_task', 'task']): 'g',
+            frozenset(['end_task', 'task']): 'g',
+            frozenset(['router', 'pe']): '0.75',
+            frozenset(['router', 'router']): '0.75',
+            frozenset(['task', 'pe']): 'y',
+            frozenset(['end_task', 'pe']): 'y',
+            frozenset(['start_task', 'pe']): 'y',
+            frozenset(['link', 'router']): 'c',
+        }
 
         for edge in G.edges():
             source_node, destination_node = edge
@@ -359,19 +390,21 @@ class GraphUtils():
             y = [pos[edge[0]][1], pos[edge[1]][1]]
             z = [pos[edge[0]][2], pos[edge[1]][2]]
 
-            if source_node_type == 'task' and destination_node_type == 'task':
-                ax.plot(x, y, z, color='g')  # Green
-            elif set((source_node_type, destination_node_type)) == {'router', 'pe'}:
-                ax.plot(x, y, z, color='0.75')  # Light gray
-            elif source_node_type == 'router' and destination_node_type == 'router':
-                ax.plot(x, y, z, color='0.75')  # Light gray
-            elif set((source_node_type, destination_node_type)) == {'task', 'pe'}:
-                ax.plot(x, y, z, color=('y'))  # Yellow
-            elif set((source_node_type, destination_node_type)) == {'link', 'router'}:
-                ax.plot(x, y, z, color=('c'), linestyle=':', alpha=0.5)  # Cyan
-            else:
+            edge_type = frozenset([source_node_type, destination_node_type])
+            if edge_type not in edge_colors:
                 raise NotImplementedError(
-                    "Edge type not supported in visualization_network_3d()")
+                    f"Edge type not supported in visualization_network_3d() "
+                    f"for {source_node_type} -> {destination_node_type}")
+
+            color = edge_colors[edge_type]
+            if edge_type == frozenset(['link', 'router']):
+                linestyle = ':'
+                alpha = 0.5
+            else:
+                linestyle = '-'
+                alpha = 1
+
+            ax.plot(x, y, z, color=color, linestyle=linestyle, alpha=alpha)
         plt.show()
 
     def init_network(self, network_) -> tuple:
@@ -435,14 +468,22 @@ if __name__ == '__main__':
 
     """Visualization of the network graph in 3D"""
     # graph.visualize_network_3d()
-    # graph.visualize_network_3d(dag_on_network)
+    graph.visualize_network_3d(dag_on_network)
     # graph.visualize_network_3d(graph_with_link_nodes)
 
     graph_tensor = graph.generate_tensor(
-        dag_on_network, num_node_types_=4, target_=data_target, debug_=True)
+        dag_on_network, target_=data_target, debug_=True)
+
+    """Checking the graph tensor"""
+    print(f"Graph Tensor: {graph_tensor}")
+    print(f"Number of nodes: {graph_tensor.num_nodes}")
+    print(f"Number of edges: {graph_tensor.num_edges}")
+    print(f"Number of node features: {graph_tensor.num_node_features}")
+    print(f"Number of edge features: {graph_tensor.num_edge_features}")
+    print(f"Node features: \n{graph_tensor.x}")
 
     """Checking the validity of the graph"""
-    print(f"Graphs is directed: {graph_tensor.is_directed()}")
+    print(f"\nGraphs is directed: {graph_tensor.is_directed()}")
     print(f"Graph has self loops: {graph_tensor.has_self_loops()}")
     print(f"Graph has isolated nodes: {graph_tensor.has_isolated_nodes()}")
     print(f"Graph is valid: {graph_tensor.validate()}")
