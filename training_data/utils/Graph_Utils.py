@@ -12,32 +12,31 @@ from torch_geometric.utils.convert import from_networkx, to_networkx
 """
 Usage ( for more info check main() ):
 
-    graph                   =   GraphUtils              ( dag['network'] )
+    graph                       =   GraphUtils              ( dag['network'] )
 
-    dag_on_network, new_map =   graph.dag_on_network    ( dag['task_dag'], dag['map'] )
-    graph_with_link_nodes   =   graph.create_link_nodes ( dag_on_network, new_map )
+    dag_on_network, new_map     =   graph.dag_on_network    ( dag['task_dag'], dag['map'] )
+    graph_with_link_nodes       =   graph.create_link_nodes ( dag_on_network, new_map )
 
-    graph_tensor            =   graph.generate_tensor   (
-                                                          dag_on_network or graph_with_link_nodes,
-                                                          num_node_types_    =   4,
-                                                          target_            =   dag['network_processing_time']
-                                                        )
+    graph_tensor                =   graph.generate_tensor   (
+                                                              dag_on_network (or) graph_with_link_nodes,
+                                                              target_            =   dag['network_processing_time']
+                                                            )
 
 Member functions:
 
-    init_network( network_ )                                                -> tuple    ( processing_element, router )
+    init_network( network_ )                                -> tuple    ( processing_element, router )
 
-    generate_network_graph()                                                -> nx.Graph
+    generate_network_graph( )                               -> nx.Graph
 
-    dag_on_network( dag_, map_ )                                            -> tuple    ( network_graph, new_map )
+    dag_on_network( dag_, map_ )                            -> tuple    ( network_graph, new_map )
 
-    create_rename_map( dag_, map_ )                                         -> tuple    ( rename_dict, new_pos, new_map )
+    create_rename_map( dag_, map_ )                         -> tuple    ( rename_dict, new_pos, new_map )
 
-    create_link_nodes( graph_, map_ )                                       -> nx.Graph
+    create_link_nodes( graph_, map_ )                       -> nx.Graph
 
-    generate_tensor( nx_graph_, num_node_types_, target_, debug_=False )    -> Data
+    generate_tensor( nx_graph_, target_, debug_=False )     -> Data
 
-    visualize_network_3d( graph_=None )                                     -> None
+    visualize_network_3d( graph_=None )                     -> None
 
 """
 
@@ -174,7 +173,7 @@ class GraphUtils():
 
     def create_link_nodes(self, graph_, map_) -> nx.Graph:
         """
-        arg graph: nx.Graph (usually the output of dag_on_network())
+        arg graph: nx.Graph (usually the output of dag_on_network() or create_link_nodes())
         Inserting link nodes between the task nodes
         Connect these link nodes to relevant routers
         How to find the relevant routers?
@@ -313,7 +312,7 @@ class GraphUtils():
             elif node == "Exit":
                 rename_dict[node] = last_pe_index + num_of_nodes
             else:
-                rename_dict[node] = last_pe_index + node + 1
+                rename_dict[node] = last_pe_index + int(node) + 1
 
         new_pos = {}
         for old_key, value in dag_position.items():
@@ -326,7 +325,7 @@ class GraphUtils():
             elif task == num_of_nodes - 1:
                 updated_node = rename_dict['Exit']
             else:
-                updated_node = rename_dict[task]
+                updated_node = rename_dict[str(task)]
 
             new_map[updated_node] = pe
 
@@ -383,9 +382,11 @@ class GraphUtils():
             frozenset(['link', 'router']): 'c',
         }
 
+        print(f"Node Types: {G.nodes(data='type')}")
         for edge in G.edges():
             source_node, destination_node = edge
             source_node_type = G.nodes[source_node]['type']
+
             destination_node_type = G.nodes[destination_node]['type']
 
             x = [pos[edge[0]][0], pos[edge[1]][0]]
@@ -444,7 +445,7 @@ if __name__ == '__main__':
     index = int(sys.argv[1]) if len(sys.argv) > 1 else default_index
 
     """Loading the simulation data from the pickle file"""
-    dag_dir = f'data/task_7/{index}.pickle'
+    dag_dir = f'data/task_from_graph/{index}.pickle'
     dag = pickle.load(open(dag_dir, 'rb'))
 
     """
