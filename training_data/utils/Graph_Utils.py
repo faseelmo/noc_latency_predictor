@@ -13,10 +13,12 @@ from torch_geometric.utils.convert import from_networkx, to_networkx
 Usage ( for more info check main() ):
 
     graph                   =   GraphUtils              ( dag['network'] )
+
     dag_on_network, new_map =   graph.dag_on_network    ( dag['task_dag'], dag['map'] )
     graph_with_link_nodes   =   graph.create_link_nodes ( dag_on_network, new_map )
+
     graph_tensor            =   graph.generate_tensor   (
-                                                          dag_on_network,
+                                                          dag_on_network or graph_with_link_nodes,
                                                           num_node_types_    =   4,
                                                           target_            =   dag['network_processing_time']
                                                         )
@@ -199,8 +201,8 @@ class GraphUtils():
             src_node, dest_node = min(edge), max(edge)
 
             """ Checking if the nodes are task nodes"""
-            if graph.nodes[src_node]['type'] == 'task' and graph.nodes[dest_node]['type'] == 'task':
-
+            task_types = {'task', 'start_task', 'end_task'}
+            if graph.nodes[src_node]['type'] in task_types and graph.nodes[dest_node]['type'] in task_types:
                 """ Adding link nodes between task nodes"""
                 link_pos_x = (graph.nodes[src_node]['pos']
                               [0] + graph.nodes[dest_node]['pos'][0]) / 2
@@ -468,11 +470,11 @@ if __name__ == '__main__':
 
     """Visualization of the network graph in 3D"""
     # graph.visualize_network_3d()
-    graph.visualize_network_3d(dag_on_network)
-    # graph.visualize_network_3d(graph_with_link_nodes)
+    # graph.visualize_network_3d(dag_on_network)
+    graph.visualize_network_3d(graph_with_link_nodes)
 
     graph_tensor = graph.generate_tensor(
-        dag_on_network, target_=data_target, debug_=True)
+        graph_with_link_nodes, target_=data_target, debug_=True)
 
     """Checking the graph tensor"""
     print(f"Graph Tensor: {graph_tensor}")
