@@ -171,7 +171,7 @@ class GraphUtils():
 
         return network_graph, new_map
 
-    def create_link_nodes(self, graph_, map_) -> nx.Graph:
+    def create_link_nodes(self, graph_, map_, visualize_=False) -> nx.Graph:
         """
         arg graph: nx.Graph (usually the output of dag_on_network() or create_link_nodes())
         Inserting link nodes between the task nodes
@@ -189,6 +189,21 @@ class GraphUtils():
         """
         graph = copy.deepcopy(graph_)
 
+        task_types = {'task', 'start_task', 'end_task'}
+
+        if visualize_:
+            """ Creating a new graph for visualization purposes
+                - Removing the edges between the pe and task nodes"""
+            graph_for_vis = copy.deepcopy(graph_)
+            for edge in graph_for_vis.edges():
+                source_node, destination_node = min(edge), max(edge)
+                is_source_pe = graph_for_vis.nodes[source_node].get(
+                    'type') == 'pe'
+                is_dest_task = graph_for_vis.nodes[destination_node].get(
+                    'type') in task_types
+                if is_source_pe and is_dest_task:
+                    graph_for_vis.remove_edge(source_node, destination_node)
+
         link_node_index = max(graph.nodes()) + 1
         edges = list(graph.edges)
         edges.sort()
@@ -200,8 +215,8 @@ class GraphUtils():
             src_node, dest_node = min(edge), max(edge)
 
             """ Checking if the nodes are task nodes"""
-            task_types = {'task', 'start_task', 'end_task'}
             if graph.nodes[src_node]['type'] in task_types and graph.nodes[dest_node]['type'] in task_types:
+
                 """ Adding link nodes between task nodes"""
                 link_pos_x = (graph.nodes[src_node]['pos']
                               [0] + graph.nodes[dest_node]['pos'][0]) / 2
@@ -252,6 +267,19 @@ class GraphUtils():
                 for routers in list_router_link_connection:
                     graph.add_edge(link_node_index, routers)
 
+                if visualize_:
+                    """Creating a list of edges to add and then removing them after visualization"""
+                    edges_to_add = [(src_node, src_pe), (dest_node, dest_pe)] + [
+                        (link_node_index, router) for router in list_router_link_connection]
+                    graph_for_vis.add_edges_from(edges_to_add)
+                    graph_for_vis.add_node(
+                        link_node_index, pos=link_pos, type='link')
+
+                    self.visualize_network_3d(graph_for_vis, full_screen_=True)
+
+                    graph_for_vis.remove_edges_from(edges_to_add)
+                    graph_for_vis.remove_node(link_node_index)
+
                 """Incrementing the link node index for the next link node"""
                 link_node_index += 1
 
@@ -296,7 +324,6 @@ class GraphUtils():
         Why do we do this?
         check dag_on_network() comments for more info
         """
-
         dag_graph = dag_.graph
         dag_position = dag_.position
 
@@ -331,7 +358,7 @@ class GraphUtils():
 
         return rename_dict, new_pos, new_map
 
-    def visualize_network_3d(self, graph_=None) -> None:
+    def visualize_network_3d(self, graph_=None, full_screen_=False) -> None:
 
         if graph_ is None:
             G = self.network_graph
@@ -382,7 +409,6 @@ class GraphUtils():
             frozenset(['link', 'router']): 'c',
         }
 
-        print(f"Node Types: {G.nodes(data='type')}")
         for edge in G.edges():
             source_node, destination_node = edge
             source_node_type = G.nodes[source_node]['type']
@@ -408,7 +434,18 @@ class GraphUtils():
                 alpha = 1
 
             ax.plot(x, y, z, color=color, linestyle=linestyle, alpha=alpha)
-        plt.show()
+
+        if full_screen_:
+            manager = plt.get_current_fig_manager()
+            manager.resize(*manager.window.maxsize())
+
+        plt.draw()
+        while True:
+            """Close the plot on button press"""
+            if plt.waitforbuttonpress(0):
+                plt.close()
+                break
+
 
     def init_network(self, network_) -> tuple:
         if network_ == int(4):
@@ -467,7 +504,8 @@ if __name__ == '__main__':
     graph = GraphUtils(data_network)
     dag_on_network, new_map = graph.dag_on_network(data_dag, data_map)
 
-    graph_with_link_nodes = graph.create_link_nodes(dag_on_network, new_map)
+    graph_with_link_nodes = graph.create_link_nodes(
+        dag_on_network, new_map, visualize_=True)
 
     """Visualization of the network graph in 3D"""
     # graph.visualize_network_3d()
