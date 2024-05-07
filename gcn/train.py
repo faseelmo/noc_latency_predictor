@@ -14,16 +14,21 @@ import shutil
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
+"""
+run this script with the following command:
+python3 -m gcn.train absolute_path_to_tensor_data_dir
+"""
+
 """Training Information """
 EPOCHS = 2000
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Training on {DEVICE}")
 WEIGHT_DECAY = 0
-BATCH_SIZE = 128
+BATCH_SIZE = 200
 
 """Dataset Information """
 # DATA_DIR = 'training_data/data/task_from_graph_tensor'
-INPUT_FEATURES = 3                                             #Node Level Features
+INPUT_FEATURES = 6                                             #Node Level Features
 # NUM_NODES = 32
 
 """Load Model"""
@@ -32,7 +37,7 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/results/task_from_graph/upto_q2"
+SAVE_RESULTS = "gcn/results/dag_over_network/v1"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)

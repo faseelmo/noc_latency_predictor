@@ -31,7 +31,7 @@ def custom_collate(data_list):
 def load_data(data_dir, batch_size=100):
     dataset = CustomData(data_dir)
 
-    valid_size = int(0.1 * len(dataset))
+    valid_size = int(0.01 * len(dataset))
     train_dataset, test_dataset = random_split(
         dataset, [len(dataset) - valid_size, valid_size] 
     )
@@ -40,20 +40,20 @@ def load_data(data_dir, batch_size=100):
         train_dataset, batch_size=batch_size, shuffle=True, 
         drop_last=True, collate_fn=custom_collate, pin_memory=True, num_workers=4
     )
-    print(f"\nNumber of batches in train_loader: {len(train_loader)}")
+    print(f"\nNumber of batches in train_loader: {len(train_loader)}, total data points: {len(train_loader.dataset)}")
 
     valid_loader = DataLoader(
         test_dataset, batch_size=batch_size, shuffle=False, 
         drop_last=True, collate_fn=custom_collate, pin_memory=True, num_workers=4
     )
 
-    print(f"Number of batches in valid_loader: {len(valid_loader)}")
+    print(f"Number of batches in valid_loader: {len(valid_loader)}, total data points: {len(valid_loader.dataset)}")
 
     return train_loader, valid_loader
 
 if __name__ == "__main__":
     # pickle_dir = 'training_data/data/unique_graphs_with_links'
-    pickle_dir = 'training_data/data/task_from_graph_tensor'
+    pickle_dir = 'training_data/data/task_from_graph_dag_over_network_train'
     dataset = CustomData(pickle_dir)
 
     print(f"Dataset size {len(dataset)}")

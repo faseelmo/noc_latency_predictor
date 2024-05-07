@@ -8,6 +8,7 @@ import torch
 import torch.nn.functional as F
 from torch_geometric.data import Data
 from torch_geometric.utils.convert import from_networkx, to_networkx
+import mpl_toolkits.mplot3d
 
 """
 Usage ( for more info check main() ):
@@ -505,7 +506,7 @@ if __name__ == '__main__':
     dag_on_network, new_map = graph.dag_on_network(data_dag, data_map)
 
     graph_with_link_nodes = graph.create_link_nodes(
-        dag_on_network, new_map, visualize_=True)
+        dag_on_network, new_map, visualize_=False)
 
     """Visualization of the network graph in 3D"""
     # graph.visualize_network_3d()
