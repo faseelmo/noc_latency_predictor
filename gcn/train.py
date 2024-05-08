@@ -37,13 +37,17 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/results/dag_over_network/v1"
+SAVE_RESULTS = "gcn/results/dag_over_network/v2"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
     print(f"Folder '{SAVE_RESULTS}' created.")
 else:
     print(f"Folder '{SAVE_RESULTS}' already exists.")
+    continue_prompt = input("Do you want to continue? (yes/no): ")
+    if continue_prompt.lower() != "yes":
+        exit()
+
 
 # Copy model.py to the results folder
 shutil.copy2('gcn/model.py', f'{SAVE_RESULTS}/model.py')
@@ -112,6 +116,7 @@ def main():
     
 
     model = GCN(num_node_features=INPUT_FEATURES).to(DEVICE)
+    print(f"Parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
     # model = GCN()
     # model = nn.DataParallel(model).to(DEVICE)
 
