@@ -85,3 +85,25 @@ The following table summarizes the input feature for each dataset.
 The directory `gcn/results` contains the results of each training iteration. Inside each of these folders, you can find a Jupyter notebook named `analysis.ipynb`, with the corresponding results.
 
 
+##### 1. DAG on Mesh Network  
+1. V1 (7.5.24)  
+    3 GraphConv Layers **512->256->128->64**  
+    Single Layer MLP **64->1**
+
+
+| Test idx | V1 Tau | 
+| - | ---------- | 
+| 0	|   0.133201 |
+| 1	|   0.117391 |
+| 2	|   0.122078 |
+| 3	|   0.151247 |
+| 4	|   0.125000 |
+| 5	|   0.171571 |
+| 6	|   0.272187 |
+| 7	|   0.151343 |
+| 8	|   0.181536 |
+| 9	|   0.164637 |
+| **mean**| 0.1590 |
+
+
+
