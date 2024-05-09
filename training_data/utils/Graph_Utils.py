@@ -43,7 +43,7 @@ Member functions:
 
 
 class GraphUtils():
-    def __init__(self, network_):
+    def __init__(self, network_, directed_):
 
         self.router_z = 0
         self.processing_element_z = 0.5
@@ -52,6 +52,11 @@ class GraphUtils():
         self.max_network_coordinate_value = 3
         self.processing_element = None
         self.router = None
+
+        if directed_:
+            self.is_directed = True
+        else:
+            self.is_directed = False
 
         self.processing_element, self.router = self.init_network(network_)
         self.last_pe_index = max(self.processing_element.keys())
@@ -96,7 +101,12 @@ class GraphUtils():
             and then sort?, look into self.create_link_nodes() for more info)
         """
         if debug_:
-            graph_networkx = to_networkx(graph_tensor)
+            if self.is_directed:
+                graph_networkx = to_networkx(graph_tensor)
+            else: 
+                """Pass to_undirected as an argument to_networkx(), but then the edge_index will be different
+                and will have to use sets"""
+                graph_networkx = to_networkx(graph_tensor)
             for graph_edge, tensor_edge in zip(graph_networkx.edges, graph_tensor.edge_index.t()):
                 assert graph_edge == tuple(tensor_edge.tolist(
                 )), "Edge index mismatch between graph and tensor"
@@ -196,14 +206,28 @@ class GraphUtils():
             """ Creating a new graph for visualization purposes
                 - Removing the edges between the pe and task nodes"""
             graph_for_vis = copy.deepcopy(graph_)
+            edges_to_remove = []
             for edge in graph_for_vis.edges():
-                source_node, destination_node = min(edge), max(edge)
-                is_source_pe = graph_for_vis.nodes[source_node].get(
-                    'type') == 'pe'
-                is_dest_task = graph_for_vis.nodes[destination_node].get(
+                if self.is_directed:
+                    source_node, destination_node = edge
+                else:
+                    """
+                    we expect the source node (task) to have a higher index than the destination node (pe)
+                    """
+                    source_node, destination_node = max(edge), min(edge)
+
+                is_source_task = graph_for_vis.nodes[source_node].get(
                     'type') in task_types
-                if is_source_pe and is_dest_task:
-                    graph_for_vis.remove_edge(source_node, destination_node)
+
+                is_dest_pe = graph_for_vis.nodes[destination_node].get(
+                    'type') == 'pe'
+
+                if is_source_task and is_dest_pe:
+                    edges_to_remove.append(edge)
+                    # graph_for_vis.remove_edge(source_node, destination_node)
+
+            for edge in edges_to_remove:
+                graph_for_vis.remove_edge(*edge)
 
         link_node_index = max(graph.nodes()) + 1
         edges = list(graph.edges)
@@ -288,7 +312,10 @@ class GraphUtils():
 
     def generate_network_graph(self) -> nx.Graph:
 
-        G = nx.Graph()
+        if self.is_directed:
+            G = nx.DiGraph()
+        else:
+            G = nx.Graph()
 
         """ Adding the nodes with their coordinates and type """
         for node, coordinates in self.router.items():
@@ -307,6 +334,8 @@ class GraphUtils():
                             2 + (src_coordinates[1] - dest_coordinates[1])**2)**0.5
                 if euc_dist == 1:
                     G.add_edge(src_node, dest_node)
+                    if self.is_directed:
+                        G.add_edge(dest_node, src_node)
 
         """ Adding Edges between PE and Router"""
         for src_node, src_coordinates in self.processing_element.items():
@@ -315,6 +344,8 @@ class GraphUtils():
                 dest_x, dest_y, dest_z = dest_coordinates
                 if src_x == dest_x and src_y == dest_y:
                     G.add_edge(src_node, dest_node)
+                    if self.is_directed:
+                        G.add_edge(dest_node, src_node)
 
         return G
 
@@ -370,10 +401,18 @@ class GraphUtils():
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
-        """Plotting Nodes"""
+        """
+        Plotting Nodes
+        Note:
+        PE nodes are colored based on the number of connections (degrees)
+        In a bare network, a PE node is connected to 1 router. 
+            For directed, the degree of the PE node is 2 (1 in, 1 out)
+            For undirected, the degree of the PE node is 1
+        """
+
         node_colors = {  # (r,g,b) 1 -> light, 0 -> dark
             'router': 'b',
-            'pe': lambda num_connections: 'r' if num_connections > 1 else (0.4, 0, 0),
+            'pe': lambda num_connections: 'r' if (num_connections > 2 if self.is_directed else num_connections > 1) else (0.4, 0, 0),
             'task': (0, 0.5, 0),
             'link': (0, 1, 0),
             'start_task': (0, 0.8, 0),
@@ -382,7 +421,8 @@ class GraphUtils():
 
         for node, coordinates in pos.items():
             node_type = G.nodes[node]['type']
-            num_node_connection = len(G.edges(node))
+            # num_node_connection = len(G.edges(node))
+            num_node_connection = G.degree(node)
 
             if node_type not in node_colors:
                 raise NotImplementedError(
@@ -428,13 +468,22 @@ class GraphUtils():
 
             color = edge_colors[edge_type]
             if edge_type == frozenset(['link', 'router']):
-                linestyle = ':'
+                # linestyle = ':'
                 alpha = 0.5
             else:
-                linestyle = '-'
+                # linestyle = '-'
                 alpha = 1
 
-            ax.plot(x, y, z, color=color, linestyle=linestyle, alpha=alpha)
+            # Add an arrow to the edge
+            dx = x[1] - x[0]
+            dy = y[1] - y[0]
+            dz = z[1] - z[0]
+
+            if self.is_directed:
+                ax.quiver(x[0], y[0], z[0], dx, dy, dz, color=color,
+                          alpha=alpha, length=1.0, arrow_length_ratio=0.07)
+            else:
+                ax.plot(x, y, z, color=color, alpha=alpha)
 
         if full_screen_:
             manager = plt.get_current_fig_manager()
@@ -446,7 +495,6 @@ class GraphUtils():
             if plt.waitforbuttonpress(0):
                 plt.close()
                 break
-
 
     def init_network(self, network_) -> tuple:
         if network_ == int(4):
@@ -502,7 +550,7 @@ if __name__ == '__main__':
 
     data_target = dag['network_processing_time']
 
-    graph = GraphUtils(data_network)
+    graph = GraphUtils(data_network, directed_=True)
     dag_on_network, new_map = graph.dag_on_network(data_dag, data_map)
 
     graph_with_link_nodes = graph.create_link_nodes(
@@ -513,16 +561,19 @@ if __name__ == '__main__':
     # graph.visualize_network_3d(dag_on_network)
     graph.visualize_network_3d(graph_with_link_nodes)
 
+
     graph_tensor = graph.generate_tensor(
         graph_with_link_nodes, target_=data_target, debug_=True)
 
     """Checking the graph tensor"""
     print(f"Graph Tensor: {graph_tensor}")
     print(f"Number of nodes: {graph_tensor.num_nodes}")
+    """Number of edges for undirected tensor graph is double the number of edges in the networkx graph"""
+    print(f"Graph with Links num of edges: {graph_with_link_nodes.number_of_edges()}")
     print(f"Number of edges: {graph_tensor.num_edges}")
     print(f"Number of node features: {graph_tensor.num_node_features}")
     print(f"Number of edge features: {graph_tensor.num_edge_features}")
-    print(f"Node features: \n{graph_tensor.x}")
+    # print(f"Node features: \n{graph_tensor.x}")
 
     """Checking the validity of the graph"""
     print(f"\nGraphs is directed: {graph_tensor.is_directed()}")
@@ -531,5 +582,6 @@ if __name__ == '__main__':
     print(f"Graph is valid: {graph_tensor.validate()}")
 
     """Checking the adjacency matrix"""
-    # from torch_geometric.utils import to_dense_adj
+    from torch_geometric.utils import to_dense_adj
+    print(f"Size of adjacency matrix: {to_dense_adj(graph_tensor.edge_index).size()}")
     # print(f"Adjacency matrix: {to_dense_adj(graph_tensor.edge_index).squeeze(0)}")
