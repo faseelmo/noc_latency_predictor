@@ -87,30 +87,44 @@ The directory `gcn/results` contains the results of each training iteration. Ins
 
 ##### 1. DAG on Mesh Network  
 1. V1 (7.5.24)  
-    Total Parameters = 1,228,801
-    3 GraphConv Layers **512->512->512**  
-    4 Layer MLP **512->256->128->64->1**
+    Tensor Graph Type = undirected  
+    Model = 250th Epoch   
+    3 GraphConv Layers **512->512->512**   
+    4 Layer MLP **512->256->128->64->1**  
+    Total Parameters = 1,228,801  
 
-2. V2 (8.5.24)
-    Total Parameters = 5,443,585
-    3 GraphConv Layers **2048->1024->512**  
-    4 Layer MLP **512->256->128->64->1**
+2. V2 (8.5.24)  
+    Tensor Graph Type = undirected  
+    Model = 100th Epoch 
+    3 GraphConv Layers **2048->1024->512**   
+    4 Layer MLP **512->256->128->64->1**  
+    Total Parameters = 5,443,585  
+
+3. V3 (9.5.24)  
+    Tensor Graph Type = directed  
+    Model = 300th Epoch  
+    Model same as **V1**  
+
+4. V4 (9.5.24)
+    Tensor Graph Type = undirected  
+    Model =   
+    6 GraphConv with Residual   
+    4 Layer MLP   
+    Total Parameters = 2,803,201
 
 
 
-| Test idx | V1 Tau | V2 Tau | 
-| - | ------------- | ------ | 
-| 0	|   0.133201    |
-| 1	|   0.117391    |
-| 2	|   0.122078    |
-| 3	|   0.151247    |
-| 4	|   0.125000    |
-| 5	|   0.171571    |
-| 6	|   0.272187    |
-| 7	|   0.151343    |
-| 8	|   0.181536    |
-| 9	|   0.164637    |
-| **mean**| 0.1590  |
-
-
+| Test idx | V1 Tau | V2 Tau    | V3 Tau    |  V4 Tau    |  
+| - | ------------- | --------- | --------- |  --------- |
+| 0	|   0.160858    | 0.105544  | 0.058364  |  in_training  |
+| 1	|   0.139070    | 0.101848  | 0.065854  |  in_training  |
+| 2	|   0.156667    | 0.169282  | 0.092780  |  in_training  |
+| 3	|   0.183540    | 0.264069  | 0.156152  |  in_training  |
+| 4	|   0.277471    | 0.116483  | 0.250640  |  in_training  |
+| 5	|   0.103764    | 0.124723  | 0.040889  |  in_training  |
+| 6	|   0.269341    | 0.318128  | 0.129487  |  in_training  |
+| 7	|   0.101575    | 0.208453  | 0.138289  |  in_training  |
+| 8	|   0.212645    | 0.154111  | 0.013303  |  in_training  |
+| 9	|   0.216671    | 0.213012  | 0.132929  |  in_training  |
+| **mean**| 0.1590  | 0.1775    | 0.10786   |  in_training  |
 
