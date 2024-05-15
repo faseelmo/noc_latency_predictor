@@ -37,7 +37,7 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/results/dag_over_network/v4"
+SAVE_RESULTS = "gcn/results/dag_over_network/v7"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
@@ -82,7 +82,7 @@ def validation_fn(test_loader, model, loss_fn, epoch):
         mean_loss.append(loss.item()) 
     
     validation_set_loss = math.sqrt(sum(mean_loss)/len(mean_loss))
-    print(f"[{epoch+1}/{EPOCHS}] Validation Loss is {math.sqrt(validation_set_loss)}")
+    print(f"[{epoch+1}/{EPOCHS}] Validation Loss is {validation_set_loss}")
     return validation_set_loss
 
 def plot_and_save_loss(train_loss, valid_loss):

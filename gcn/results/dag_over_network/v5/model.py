@@ -13,6 +13,9 @@ class GCN(torch.nn.Module):
         self.conv1 = GraphConv(num_node_features, hidden_channels)
         self.conv2 = GraphConv(hidden_channels, hidden_channels)
         self.conv3 = GraphConv(hidden_channels, hidden_channels)
+        # self.conv4 = GraphConv(hidden_channels, hidden_channels)
+        # self.conv5 = GraphConv(hidden_channels, hidden_channels)
+        # self.conv6 = GraphConv(hidden_channels, hidden_channels)
 
         self.lin1 = nn.Linear(hidden_channels, 256)
         self.lin2 = nn.Linear(256, 128)
@@ -21,33 +24,20 @@ class GCN(torch.nn.Module):
 
     def forward(self, x, edge_index, batch):
         # 1. Obtain node embeddings 
-        # print(f"\nInput Size is {x.shape}")
-        x = self.conv1(x, edge_index)
-        x = F.relu(x)
-        # print(f"1st GCN Output Size is {x.shape}")
-
-        x = self.conv2(x, edge_index)
-        x = F.relu(x)
-        # print(f"2nd GCN Output Size is {x.shape}")
-
-        x = self.conv3(x, edge_index)
-        # print(f"3rd GCN Output Size is {x.shape}")
+        x = F.leaky_relu(self.conv1(x, edge_index))
+        x = F.leaky_relu(self.conv2(x, edge_index)) + x  # Residual connection
+        x = F.leaky_relu(self.conv3(x, edge_index)) + x  # Residual connection
+        # x = F.leaky_relu(self.conv4(x, edge_index)) + x  # Residual connection
+        # x = F.leaky_relu(self.conv5(x, edge_index)) + x  # Residual connection
+        # x = F.leaky_relu(self.conv6(x, edge_index)) + x  # Residual connection
 
         # 2. Readout layer
         x = global_add_pool(x, batch)  # [batch_size, hidden_channels]
-        # print(f"Global Mean Pooling Output Size is {x.shape}")
 
         # 3. Apply a final classifier
-        # x = F.dropout(x, p=0.5, training=self.training)
-        x = self.lin1(x)
-        x = F.relu(x)
-
-        x = self.lin2(x)
-        x = F.relu(x)
-
-        x = self.lin3(x)
-        x = F.relu(x)
-
+        x = F.leaky_relu(self.lin1(x))
+        x = F.leaky_relu(self.lin2(x))
+        x = F.leaky_relu(self.lin3(x))
         x = self.lin4(x)
         
         return x
