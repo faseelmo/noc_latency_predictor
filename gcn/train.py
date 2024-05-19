@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn 
 import torch.optim as optim 
 
-from .model import GCN
+from .model import LatencyModel
 from .dataset import load_data
 
 import os 
@@ -115,7 +115,7 @@ def main():
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
     
 
-    model = GCN(num_node_features=INPUT_FEATURES).to(DEVICE)
+    model = LatencyModel(num_node_features=INPUT_FEATURES).to(DEVICE)
     print(f"Parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
     # model = GCN()
     # model = nn.DataParallel(model).to(DEVICE)

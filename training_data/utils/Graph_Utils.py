@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 import torch
 import torch.nn.functional as F
-from torch_geometric.data import Data
+from torch_geometric.data import Data, HeteroData
 from torch_geometric.utils.convert import from_networkx, to_networkx
 import mpl_toolkits.mplot3d
 
@@ -103,7 +103,7 @@ class GraphUtils():
         if debug_:
             if self.is_directed:
                 graph_networkx = to_networkx(graph_tensor)
-            else: 
+            else:
                 """Pass to_undirected as an argument to_networkx(), but then the edge_index will be different
                 and will have to use sets"""
                 graph_networkx = to_networkx(graph_tensor)
@@ -112,6 +112,71 @@ class GraphUtils():
                 )), "Edge index mismatch between graph and tensor"
 
         return graph_tensor
+
+    def generate_heterogeneous_tensor(self, nx_graph_, target_, debug_=False) -> HeteroData:
+
+        hetero_data = HeteroData()
+        sorted_nodes = sorted(nx_graph_.nodes(data=True), key=lambda x: x[0])
+
+        node_type_dict = {}
+        """
+        {'router'   : [corresponding node_indices], 
+        'pe'        : [corresponding node_indices], 
+        'task'      : [corresponding node_indices],
+        'start_task': [corresponding node_indices],
+        'end_task'  : [corresponding node_indices],
+        'link'      : [corresponding node_indices]}
+        }"""
+        for node in sorted_nodes:
+            """"node = (node, {pos: (x, y, z), type: 'router'})"""
+            node_index = node[0]
+            node_type = node[1]['type']
+
+            if node_type not in node_type_dict:
+                node_type_dict[node_type] = []
+
+            node_type_dict[node_type].append(node_index)
+
+        node_index_mapping = {}
+        for node_type, node_indices in node_type_dict.items():
+            index_mapping = {}
+            for i, node in enumerate(node_indices):
+                index_mapping[node] = i
+
+            node_index_mapping[node_type] = index_mapping
+            hetero_data[node_type].num_nodes = len(node_indices)
+
+            if node_type in ['task', 'start_task', 'end_task', 'link']:
+                hetero_data[node_type].x = torch.ones(len(node_indices), 10)
+            else:
+                hetero_data[node_type].x = torch.ones(len(node_indices), 1)
+
+        edge_index_dict = {}
+        for src, dest in nx_graph_.edges():
+            src_type = nx_graph_.nodes[src]['type']
+            dest_type = nx_graph_.nodes[dest]['type']
+
+            edge_type = (src_type, 'to', dest_type)
+
+            if edge_type not in edge_index_dict:
+                edge_index_dict[edge_type] = ([], [])
+
+            edge_index_dict[edge_type][0].append(
+                node_index_mapping[src_type][src])
+            edge_index_dict[edge_type][1].append(
+                node_index_mapping[dest_type][dest])
+
+        for edge_type, (src_list, dest_list) in edge_index_dict.items():
+            # print(
+            #     f"\nFor edge ({edge_type}) Index: \n{src_list} -> \n{dest_list}")
+            src_type, _, dest_type = edge_type
+            hetero_data[edge_type].edge_index = torch.tensor(
+                [src_list, dest_list])
+
+        hetero_data.y = torch.tensor([float(target_)])
+        # print(f"Hetero Data: {hetero_data}")
+        
+        return hetero_data
 
     def dag_on_network(self, dag_, map_) -> tuple:
         """ type(dag) -> DAG() """
@@ -559,17 +624,21 @@ if __name__ == '__main__':
     """Visualization of the network graph in 3D"""
     # graph.visualize_network_3d()
     # graph.visualize_network_3d(dag_on_network)
-    graph.visualize_network_3d(graph_with_link_nodes)
+    # graph.visualize_network_3d(graph_with_link_nodes)
 
+    # graph_tensor = graph.generate_tensor(
+    #     graph_with_link_nodes, target_=data_target, debug_=True)
 
-    graph_tensor = graph.generate_tensor(
+    graph_tensor = graph.generate_heterogeneous_tensor(
         graph_with_link_nodes, target_=data_target, debug_=True)
+
 
     """Checking the graph tensor"""
     print(f"Graph Tensor: {graph_tensor}")
     print(f"Number of nodes: {graph_tensor.num_nodes}")
     """Number of edges for undirected tensor graph is double the number of edges in the networkx graph"""
-    print(f"Graph with Links num of edges: {graph_with_link_nodes.number_of_edges()}")
+    print(
+        f"Graph with Links num of edges: {graph_with_link_nodes.number_of_edges()}")
     print(f"Number of edges: {graph_tensor.num_edges}")
     print(f"Number of node features: {graph_tensor.num_node_features}")
     print(f"Number of edge features: {graph_tensor.num_edge_features}")
@@ -579,9 +648,11 @@ if __name__ == '__main__':
     print(f"\nGraphs is directed: {graph_tensor.is_directed()}")
     print(f"Graph has self loops: {graph_tensor.has_self_loops()}")
     print(f"Graph has isolated nodes: {graph_tensor.has_isolated_nodes()}")
+    print(f"Graph metadata: {graph_tensor.metadata}")
     print(f"Graph is valid: {graph_tensor.validate()}")
 
     """Checking the adjacency matrix"""
-    from torch_geometric.utils import to_dense_adj
-    print(f"Size of adjacency matrix: {to_dense_adj(graph_tensor.edge_index).size()}")
+    # from torch_geometric.utils import to_dense_adj
+    # print(
+    #     f"Size of adjacency matrix: {to_dense_adj(graph_tensor.edge_index).size()}")
     # print(f"Adjacency matrix: {to_dense_adj(graph_tensor.edge_index).squeeze(0)}")
