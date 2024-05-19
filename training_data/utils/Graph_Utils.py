@@ -116,6 +116,7 @@ class GraphUtils():
     def generate_heterogeneous_tensor(self, nx_graph_, target_, debug_=False) -> HeteroData:
 
         hetero_data = HeteroData()
+        # print(f"Edges in the graph: {nx_graph_.edges()}")
         sorted_nodes = sorted(nx_graph_.nodes(data=True), key=lambda x: x[0])
 
         node_type_dict = {}
@@ -147,14 +148,16 @@ class GraphUtils():
             hetero_data[node_type].num_nodes = len(node_indices)
 
             if node_type in ['task', 'start_task', 'end_task', 'link']:
-                hetero_data[node_type].x = torch.ones(len(node_indices), 10)
+                hetero_data[node_type].x = torch.full((len(node_indices), 1), 10)
             else:
-                hetero_data[node_type].x = torch.ones(len(node_indices), 1)
+                hetero_data[node_type].x = torch.full((len(node_indices), 1), 1)
 
         edge_index_dict = {}
         for src, dest in nx_graph_.edges():
             src_type = nx_graph_.nodes[src]['type']
             dest_type = nx_graph_.nodes[dest]['type']
+
+            # print(f"Edge: {src} -> {dest} ({src_type} -> {dest_type})")
 
             edge_type = (src_type, 'to', dest_type)
 
@@ -307,6 +310,8 @@ class GraphUtils():
             """ Checking if the nodes are task nodes"""
             if graph.nodes[src_node]['type'] in task_types and graph.nodes[dest_node]['type'] in task_types:
 
+                graph.remove_edge(src_node, dest_node)
+
                 """ Adding link nodes between task nodes"""
                 link_pos_x = (graph.nodes[src_node]['pos']
                               [0] + graph.nodes[dest_node]['pos'][0]) / 2
@@ -314,6 +319,9 @@ class GraphUtils():
                               [1] + graph.nodes[dest_node]['pos'][1]) / 2
                 link_pos = (link_pos_x, link_pos_y, self.dag_z)
                 graph.add_node(link_node_index, pos=link_pos, type='link')
+
+                graph.add_edge(src_node, link_node_index)
+                graph.add_edge(link_node_index, dest_node)
 
                 """ Finding XY Routing between the src and dest pe nodes"""
                 src_pe = map_[src_node]
@@ -513,6 +521,9 @@ class GraphUtils():
             frozenset(['end_task', 'pe']): 'y',
             frozenset(['start_task', 'pe']): 'y',
             frozenset(['link', 'router']): 'c',
+            frozenset(['link', 'task']): 'g',
+            frozenset(['link', 'start_task']): 'g',
+            frozenset(['link', 'end_task']): 'g'
         }
 
         for edge in G.edges():
@@ -621,16 +632,18 @@ if __name__ == '__main__':
     graph_with_link_nodes = graph.create_link_nodes(
         dag_on_network, new_map, visualize_=False)
 
+
     """Visualization of the network graph in 3D"""
     # graph.visualize_network_3d()
     # graph.visualize_network_3d(dag_on_network)
-    # graph.visualize_network_3d(graph_with_link_nodes)
+    graph.visualize_network_3d(graph_with_link_nodes)
 
     # graph_tensor = graph.generate_tensor(
     #     graph_with_link_nodes, target_=data_target, debug_=True)
-
+    
     graph_tensor = graph.generate_heterogeneous_tensor(
         graph_with_link_nodes, target_=data_target, debug_=True)
+
 
 
     """Checking the graph tensor"""

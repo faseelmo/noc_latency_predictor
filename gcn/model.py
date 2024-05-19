@@ -11,14 +11,14 @@ class GCN(torch.nn.Module):
         self.conv1 = GraphConv(num_node_features, hidden_channels)
         self.conv2 = GraphConv(hidden_channels, hidden_channels)
         self.conv3 = GraphConv(hidden_channels, hidden_channels)
+        self.conv4 = GraphConv(hidden_channels, hidden_channels)
 
     def forward(self, x, edge_index):
-        x = self.conv1(x, edge_index)
-        x = F.relu(x)
-        x = self.conv2(x, edge_index)
-        x = F.relu(x)
-        x = self.conv3(x, edge_index)
-        return x
+        x1 = F.relu(self.conv1(x, edge_index)) 
+        x2 = F.relu(self.conv2(x1, edge_index)) + x1
+        x3 = self.conv3(x2, edge_index) + x2
+        x4 = self.conv4(x3, edge_index) + x3
+        return x4
 
 class LatencyModel(torch.nn.Module):
     def __init__(self, hidden_channels=512, num_node_features=1):
@@ -31,7 +31,7 @@ class LatencyModel(torch.nn.Module):
 
     def forward(self, x, edge_index, batch):
         gcn_output = self.gcn(x, edge_index)
-        gcn_output = global_mean_pool(gcn_output, batch)
+        gcn_output = global_add_pool(gcn_output, batch)
         x = F.relu(self.lin1(gcn_output))
         x = F.relu(self.lin2(x))
         x = F.relu(self.lin3(x))
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     from .dataset import load_data
     features = 6
     batch_size = 1
-    data_loader, _ = load_data('training_data/data/task_from_graph_dag_over_network_directed_train', batch_size=batch_size)
+    data_loader, _ = load_data('training_data/data/task_from_graph_dag_over_network_corrected_train', batch_size=batch_size)
 
     # Loading the Model
     device = torch.device('cpu')
