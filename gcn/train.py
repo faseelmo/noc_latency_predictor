@@ -1,11 +1,11 @@
-import torch 
-import torch.nn as nn 
-import torch.optim as optim 
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
 from .model import LatencyModel
 from .dataset import load_data
 
-import os 
+import os
 import time
 import pickle
 import sys
@@ -28,7 +28,7 @@ BATCH_SIZE = 200
 
 """Dataset Information """
 # DATA_DIR = 'training_data/data/task_from_graph_tensor'
-INPUT_FEATURES = 6                                             #Node Level Features
+INPUT_FEATURES = 1  # Node Level Features
 # NUM_NODES = 32
 
 """Load Model"""
@@ -37,7 +37,7 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/results/dag_over_network/v8"
+SAVE_RESULTS = "gcn/results/dag_over_network/v9"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
@@ -52,13 +52,14 @@ else:
 # Copy model.py to the results folder
 shutil.copy2('gcn/model.py', f'{SAVE_RESULTS}/model.py')
 
-def train_fn(train_loader, model, optimizer, loss_fn): 
+
+def train_fn(train_loader, model, optimizer, loss_fn):
     loop = tqdm(train_loader, leave=True)
 
     mean_loss = []
     for batch_idx, data in enumerate(loop):
         data = data.to(DEVICE)
-        output = model(data.x, data.edge_index, data.batch).squeeze(1)
+        output = model(data.x_dict, data.edge_index_dict, data.batch_dict['link']).squeeze(1)
         loss = loss_fn(output, data.y)
 
         optimizer.zero_grad()
@@ -68,26 +69,29 @@ def train_fn(train_loader, model, optimizer, loss_fn):
         loop.set_postfix(loss=loss.item())
         mean_loss.append(loss.item())
 
-    train_loss = math.sqrt(sum(mean_loss)/len(mean_loss) )
+    train_loss = math.sqrt(sum(mean_loss)/len(mean_loss))
     return train_loss
+
 
 def validation_fn(test_loader, model, loss_fn, epoch):
     mean_loss = []
     for data in test_loader:
         data = data.to(DEVICE)
-        x = data.x
-        edge_index = data.edge_index
-        output = model(x, edge_index, data.batch).squeeze(1)
+        x = data.x_dict
+        edge_index = data.edge_index_dict
+        batch = data.batch_dict['link']
+        output = model(x, edge_index, batch).squeeze(1)
         loss = loss_fn(output, data.y)
-        mean_loss.append(loss.item()) 
-    
+        mean_loss.append(loss.item())
+
     validation_set_loss = math.sqrt(sum(mean_loss)/len(mean_loss))
     print(f"[{epoch+1}/{EPOCHS}] Validation Loss is {validation_set_loss}")
     return validation_set_loss
 
+
 def plot_and_save_loss(train_loss, valid_loss):
     epochs = range(1, len(train_loss) + 1)
-    
+
     plt.yscale('log')
     plt.plot(epochs, train_loss, label='Training Loss')
     plt.plot(epochs, valid_loss, label='Validation Loss')
@@ -99,11 +103,12 @@ def plot_and_save_loss(train_loss, valid_loss):
     plt.clf()
 
     loss_dict = {
-        'train_loss' : train_loss,
-        'valid_loss' : valid_loss,
+        'train_loss': train_loss,
+        'valid_loss': valid_loss,
     }
     with open(f'{SAVE_RESULTS}/loss_dict.pkl', 'wb') as file:
         pickle.dump(loss_dict, file)
+
 
 def main():
     start_time = time.time()
@@ -113,14 +118,15 @@ def main():
         # sys.exit(0)
 
     train_loader, test_loader = load_data(DATA_DIR, BATCH_SIZE)
-    
 
-    model = LatencyModel(num_node_features=INPUT_FEATURES).to(DEVICE)
-    print(f"Parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
-    # model = GCN()
-    # model = nn.DataParallel(model).to(DEVICE)
+    metedata = next(iter(train_loader))[0].metadata()
 
-    learning_rate = 0.001 #5e-4
+    model = LatencyModel(num_features=INPUT_FEATURES,
+                         hidden_channels=512, metadata=metedata, aggr='sum').to(DEVICE)
+    print(
+        f"Parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
+
+    learning_rate = 0.001  # 5e-4
 
     if LOAD_MODEL:
         model_state_dict = torch.load(MODEL_PATH)
@@ -128,8 +134,8 @@ def main():
         print(f"\nPre-Trained Wieghts Loaded\n")
 
     optimizer = optim.Adam(
-        model.parameters(), 
-        lr=learning_rate, 
+        model.parameters(),
+        lr=learning_rate,
         weight_decay=WEIGHT_DECAY
     )
 
@@ -138,7 +144,7 @@ def main():
 
     valid_loss_list = []
     train_loss_list = []
-    for epoch in range(EPOCHS): 
+    for epoch in range(EPOCHS):
         train_loss = train_fn(train_loader, model, optimizer, loss_fn)
         valid_loss = validation_fn(test_loader, model, loss_fn, epoch)
 
@@ -146,25 +152,26 @@ def main():
         valid_loss_list.append(valid_loss)
         plot_and_save_loss(train_loss_list, valid_loss_list)
 
-        if (epoch+1) == 50: 
+        if (epoch+1) == 50:
             learning_rate = 0.0005
             print(f"Learning Rate Changed to {learning_rate}")
 
-        if (epoch+1) == 150: 
+        if (epoch+1) == 150:
             learning_rate = 0.0001
             print(f"Learning Rate Changed to {learning_rate}")
 
-        if (epoch+1) == 250: 
+        if (epoch+1) == 250:
             learning_rate = 0.00005
             print(f"Learning Rate Changed to {learning_rate}")
 
-        if (epoch+1) == 350: 
+        if (epoch+1) == 350:
             learning_rate = 0.00001
             print(f"Learning Rate Changed to {learning_rate}")
 
         if (epoch+1) % 50 == 0 or (epoch+1) == 1:
             torch.save(model, f'{SAVE_RESULTS}/LatNet_{epoch+1}.pth')
-            torch.save(model.state_dict(), f'{SAVE_RESULTS}/LatNet_{epoch+1}_state_dict.pth')
+            torch.save(model.state_dict(),
+                       f'{SAVE_RESULTS}/LatNet_{epoch+1}_state_dict.pth')
             end_time = time.time()
             time_elapsed = (end_time - start_time) / 60
             print(f"\nTraining Time: {time_elapsed} minutes\n")
@@ -174,6 +181,7 @@ def main():
     end_time = time.time()
     time_elapsed = (end_time - start_time) / 60
     print(f"\nFinal Training Time: {time_elapsed} minutes\n")
-        
+
+
 if __name__ == "__main__":
     main()
