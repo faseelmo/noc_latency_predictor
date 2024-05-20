@@ -134,19 +134,30 @@ def load_data(dir_path, num_mappings):
     return list_of_graphs
 
 
-def do_inference(data, MODEL, model_path, input_features):
+def do_inference(data, MODEL, model_path, input_features, is_hetero=False):
     import torch
     model_state_dict = torch.load(
         model_path,  map_location=torch.device('cpu'))
-    model = MODEL(num_node_features=input_features).to(torch.device('cpu'))
-    model.load_state_dict(model_state_dict)
-    pred_latency = model(data.x, data.edge_index, data.batch)
+    
+    if is_hetero:
+        metadata = data.metadata()
+        print(data.batch_dict)
+        model = MODEL(num_features=input_features, hidden_channels=512, metadata=metadata).to(torch.device('cpu'))
+        x = data.x_dict
+        edge_index = data.edge_index_dict
+        batch = data.batch_dict['link']
+        pred_latency = MODEL(x, edge_index, batch).squeeze(1)
+    else:
+        model = MODEL(num_node_features=input_features).to(torch.device('cpu'))
+        model.load_state_dict(model_state_dict)
+        pred_latency = model(data.x, data.edge_index, data.batch)
+
     actual_latency = data.y
-    model.load_state_dict(model_state_dict)
+    # model.load_state_dict(model_state_dict)
     return pred_latency.item(), actual_latency.item()
 
 
-def get_tau_result(list_of_graphs, MODEL, model_path, input_features, show_plot=False):
+def get_tau_result(list_of_graphs, MODEL, model_path, input_features, show_plot=False, is_hetero=False):
     from scipy.stats import kendalltau
     tau_list = []
     for idx, list_of_iso in enumerate(list_of_graphs):
@@ -154,8 +165,12 @@ def get_tau_result(list_of_graphs, MODEL, model_path, input_features, show_plot=
         list_of_pred = []
         list_of_actual = []
         for data in list_of_iso:
-            pred, actual = do_inference(
-                data, MODEL=MODEL, model_path=model_path, input_features=input_features)
+            if is_hetero:
+                pred, actual = do_inference(
+                    data, MODEL=MODEL, model_path=model_path, input_features=input_features, is_hetero=True)
+            else: 
+                pred, actual = do_inference(
+                    data, MODEL=MODEL, model_path=model_path, input_features=input_features)
             list_of_pred.append(pred)
             list_of_actual.append(actual)
 

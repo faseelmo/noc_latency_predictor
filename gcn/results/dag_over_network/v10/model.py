@@ -1,40 +1,38 @@
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
-from torch_geometric.nn import GATConv, global_add_pool, to_hetero
-from torch_geometric.nn import GraphConv  # For comparison
+from torch_geometric.data import Data
+import torch.nn.functional as F
+from torch_geometric.nn import GCNConv, global_mean_pool, GraphConv, global_add_pool, HeteroConv, to_hetero
+
+# torch.manual_seed(1)
+
 
 class GNN(nn.Module):
-    def __init__(self, num_features, hidden_channels, num_heads=8, concat=True):
+    def __init__(self, num_features, hidden_channels):
         super(GNN, self).__init__()
-        self.concat = concat
-        self.num_heads = num_heads
-        self.hidden_channels = hidden_channels
-        out_channels = hidden_channels * num_heads if concat else hidden_channels
-        
-        self.conv1 = GATConv(num_features, hidden_channels, heads=num_heads, concat=concat, add_self_loops=False)
-        self.conv2 = GATConv(out_channels, hidden_channels, heads=num_heads, concat=concat, add_self_loops=False)
-        self.conv3 = GATConv(out_channels, hidden_channels, heads=num_heads, concat=concat, add_self_loops=False)
-        self.conv4 = GATConv(out_channels, hidden_channels, heads=num_heads, concat=concat, add_self_loops=False)
-        self.conv5 = GATConv(out_channels, hidden_channels, heads=num_heads, concat=concat, add_self_loops=False)
+        # Try Graph Attention Network
+        self.conv1 = GraphConv(num_features, hidden_channels)
+        self.conv2 = GraphConv(hidden_channels, hidden_channels)
+        self.conv3 = GraphConv(hidden_channels, hidden_channels)
+        self.conv4 = GraphConv(hidden_channels, hidden_channels)  
+        self.conv5 = GraphConv(hidden_channels, hidden_channels)  
 
     def forward(self, x, edge_index):
         x1 = self.conv1(x, edge_index).relu()
-        x2 = self.conv2(x1, edge_index).relu() + x1  # Residual connection
-        x3 = self.conv3(x2, edge_index).relu() + x2  # Residual connection
-        x4 = self.conv4(x3, edge_index).relu() + x3  # Residual connection
-        x5 = self.conv5(x4, edge_index) + x4  # Residual connection
+        x2 = self.conv2(x1, edge_index).relu() + x1  
+        x3 = self.conv3(x2, edge_index).relu() + x2  
+        x4 = self.conv4(x3, edge_index).relu() + x3  
+        x5 = self.conv5(x4, edge_index) + x4  
         return x5
 
+
 class LatencyModel(nn.Module):
-    def __init__(self, num_features, hidden_channels, metadata, aggr='sum', num_heads=8, concat=True):
+    def __init__(self, num_features, hidden_channels, metadata, aggr='sum'):
         super(LatencyModel, self).__init__()
-        gnn = GNN(num_features, hidden_channels, num_heads, concat)
+        gnn = GNN(num_features, hidden_channels)
         self.hetero_gnn = to_hetero(gnn, metadata, aggr=aggr)
         
-        out_channels = hidden_channels * num_heads if concat else hidden_channels
-        
-        self.lin1 = nn.Linear(out_channels, 128)
+        self.lin1 = nn.Linear(hidden_channels, 128)
         self.bn1 = nn.BatchNorm1d(128)
         self.dropout1 = nn.Dropout(p=0.5)
         
@@ -56,7 +54,6 @@ class LatencyModel(nn.Module):
         
         x = self.lin3(x)
         return x
-
 
 
 if __name__ == "__main__":
@@ -95,8 +92,7 @@ if __name__ == "__main__":
 
         """Heterogenous"""
         print(f"\n")
-        # metadata -> [[node_types], [edge_types]
-        metadata = undirected_data.metadata()
+        metadata = undirected_data.metadata() # metadata -> [[node_types], [edge_types]
         # model_hetero = to_hetero(model, metadata)
         model_hetero = LatencyModel(
             num_features=FEATURES, hidden_channels=HIDDEN_CHANNELS, metadata=metadata, aggr='sum')
