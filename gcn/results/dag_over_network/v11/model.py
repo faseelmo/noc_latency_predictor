@@ -18,22 +18,17 @@ class GNN(nn.Module):
     def __init__(self, num_features, hidden_channels):
         super(GNN, self).__init__()
         self.conv1 = GraphConv(num_features, hidden_channels)
-        self.lin1 = nn.Linear(num_features, hidden_channels)
-
         self.conv2 = GraphConv(hidden_channels, hidden_channels)
-        self.lin2 = nn.Linear(hidden_channels, hidden_channels)
-
         self.conv3 = GraphConv(hidden_channels, hidden_channels)
-        self.lin3 = nn.Linear(hidden_channels, hidden_channels)
+        # self.conv4 = GraphConv(hidden_channels, hidden_channels)
+        # self.conv5 = GraphConv(hidden_channels, hidden_channels)
 
     def forward(self, x, edge_index):
-        x1 = self.conv1(x, edge_index) + self.lin1(x) 
-        x1 = x1.relu()
-
-        x2 = self.conv2(x1, edge_index) + self.lin2(x1)
-        x2 = x2.relu()
-
-        x3 = self.conv3(x2, edge_index) + self.lin3(x2)
+        x1 = self.conv1(x, edge_index).relu()
+        x2 = self.conv2(x1, edge_index).relu() + x1
+        x3 = self.conv3(x2, edge_index)
+        # x4 = self.conv4(x3, edge_index).relu() + x3
+        # x5 = self.conv5(x4, edge_index) + x4
         return x3
 
 

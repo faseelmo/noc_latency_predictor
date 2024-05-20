@@ -37,7 +37,7 @@ MODEL_PATH = "gcn/results/"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/results/dag_over_network/v10"
+SAVE_RESULTS = "gcn/results/dag_over_network/v11"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
@@ -59,7 +59,7 @@ def train_fn(train_loader, model, optimizer, loss_fn):
     mean_loss = []
     for batch_idx, data in enumerate(loop):
         data = data.to(DEVICE)
-        output = model(data.x_dict, data.edge_index_dict, data.batch_dict['link']).squeeze(1)
+        output = model(data.x_dict, data.edge_index_dict, data.batch_dict).squeeze(1)
         loss = loss_fn(output, data.y)
 
         optimizer.zero_grad()
@@ -79,7 +79,7 @@ def validation_fn(test_loader, model, loss_fn, epoch):
         data = data.to(DEVICE)
         x = data.x_dict
         edge_index = data.edge_index_dict
-        batch = data.batch_dict['link']
+        batch = data.batch_dict
         output = model(x, edge_index, batch).squeeze(1)
         loss = loss_fn(output, data.y)
         mean_loss.append(loss.item())
