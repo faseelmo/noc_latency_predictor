@@ -32,12 +32,12 @@ INPUT_FEATURES = 1  # Node Level Features
 # NUM_NODES = 32
 
 """Load Model"""
-LOAD_MODEL = False
-MODEL_PATH = "gcn/results/"
+LOAD_MODEL = True
+MODEL_PATH = "gcn/results/dag_over_network/v13/LatNet_450_state_dict.pth"
 
 torch.manual_seed(1)
 
-SAVE_RESULTS = "gcn/results/dag_over_network/v11"
+SAVE_RESULTS = "gcn/results/dag_over_network/v14"
 
 if not os.path.exists(SAVE_RESULTS):
     os.makedirs(SAVE_RESULTS)
@@ -126,7 +126,7 @@ def main():
     print(
         f"Parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
 
-    learning_rate = 0.001  # 5e-4
+    learning_rate = 10  # 5e-4
 
     if LOAD_MODEL:
         model_state_dict = torch.load(MODEL_PATH)
@@ -156,17 +156,17 @@ def main():
             learning_rate = 0.0005
             print(f"Learning Rate Changed to {learning_rate}")
 
-        if (epoch+1) == 150:
-            learning_rate = 0.0001
-            print(f"Learning Rate Changed to {learning_rate}")
+        # if (epoch+1) == 150:
+        #     learning_rate = 0.0001
+        #     print(f"Learning Rate Changed to {learning_rate}")
 
-        if (epoch+1) == 250:
-            learning_rate = 0.00005
-            print(f"Learning Rate Changed to {learning_rate}")
+        # if (epoch+1) == 250:
+        #     learning_rate = 0.00005
+        #     print(f"Learning Rate Changed to {learning_rate}")
 
-        if (epoch+1) == 350:
-            learning_rate = 0.00001
-            print(f"Learning Rate Changed to {learning_rate}")
+        # if (epoch+1) == 350:
+        #     learning_rate = 0.00001
+        #     print(f"Learning Rate Changed to {learning_rate}")
 
         if (epoch+1) % 50 == 0 or (epoch+1) == 1:
             torch.save(model, f'{SAVE_RESULTS}/LatNet_{epoch+1}.pth')
