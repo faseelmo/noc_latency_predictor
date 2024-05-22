@@ -186,3 +186,65 @@ def get_tau_result(list_of_graphs, MODEL, model_path, input_features, show_plot=
             plt.show()
 
     return np.array(tau_list)
+
+def get_tau_from_dataloader(dataloader, model_with_state_dict, num_mapping): 
+    from scipy.stats import kendalltau
+    tau_list = []
+    
+    list_of_pred = []
+    list_of_actual = []
+
+    for idx, data in enumerate(dataloader, start=1):
+        pred = model_with_state_dict(data.x_dict, data.edge_index_dict, data.batch_dict)
+        list_of_pred.append(pred.item())
+        list_of_actual.append(data.y.item())
+
+        if idx % num_mapping == 0:
+            tau, _ = kendalltau(list_of_pred, list_of_actual)
+            tau_list.append([idx, tau])
+            list_of_pred = []
+            list_of_actual = []
+
+    return np.array(tau_list)
+
+def get_tau_from_dataloader(dataloader, model_with_state_dict, num_mapping): 
+    from scipy.stats import kendalltau
+    tau_list = []
+    
+    list_of_pred = []
+    list_of_actual = []
+
+    for idx, data in enumerate(dataloader):
+        pred = model_with_state_dict(data.x_dict, data.edge_index_dict, data.batch_dict)
+        list_of_pred.append(pred.item())
+        list_of_actual.append(data.y.item())
+
+        if idx % num_mapping == 0:
+            print(f"List of Pred is {list_of_pred}")
+            print(f"List of Actual is {list_of_actual}")
+            tau, _ = kendalltau(list_of_pred, list_of_actual)
+            print(f"Tau is {tau}")
+            tau_list.append([idx, tau])
+            list_of_pred = []
+            list_of_actual = []
+
+    return np.array(tau_list)
+
+from torch.utils.data import Dataset, DataLoader
+class TestDataset(Dataset): 
+    def __init__(self, list_of_graphs): 
+        self.list_of_graphs = list_of_graphs    
+
+    def __len__(self):
+        num_of_graphs = len(self.list_of_graphs)
+        num_of_mapping_per_graph = len(self.list_of_graphs[0])
+        return num_of_graphs*num_of_mapping_per_graph
+
+    def __getitem__(self, idx):
+        graph_idx = idx // len(self.list_of_graphs[0])
+        mapping_idx = idx % len(self.list_of_graphs[0])
+        return self.list_of_graphs[graph_idx][mapping_idx]
+
+from torch_geometric.data import Batch
+def custom_collate(data_list):
+    return Batch.from_data_list(data_list)
