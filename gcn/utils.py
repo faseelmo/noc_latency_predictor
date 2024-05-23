@@ -134,19 +134,30 @@ def load_data(dir_path, num_mappings):
     return list_of_graphs
 
 
-def do_inference(data, MODEL, model_path, input_features):
+def do_inference(data, MODEL, model_path, input_features, is_hetero=False):
     import torch
     model_state_dict = torch.load(
         model_path,  map_location=torch.device('cpu'))
-    model = MODEL(num_node_features=input_features).to(torch.device('cpu'))
-    model.load_state_dict(model_state_dict)
-    pred_latency = model(data.x, data.edge_index, data.batch)
+    
+    if is_hetero:
+        metadata = data.metadata()
+        print(data.batch_dict)
+        model = MODEL(num_features=input_features, hidden_channels=512, metadata=metadata).to(torch.device('cpu'))
+        x = data.x_dict
+        edge_index = data.edge_index_dict
+        batch = data.batch_dict['link']
+        pred_latency = MODEL(x, edge_index, batch).squeeze(1)
+    else:
+        model = MODEL(num_node_features=input_features).to(torch.device('cpu'))
+        model.load_state_dict(model_state_dict)
+        pred_latency = model(data.x, data.edge_index, data.batch)
+
     actual_latency = data.y
-    model.load_state_dict(model_state_dict)
+    # model.load_state_dict(model_state_dict)
     return pred_latency.item(), actual_latency.item()
 
 
-def get_tau_result(list_of_graphs, MODEL, model_path, input_features, show_plot=False):
+def get_tau_result(list_of_graphs, MODEL, model_path, input_features, show_plot=False, is_hetero=False):
     from scipy.stats import kendalltau
     tau_list = []
     for idx, list_of_iso in enumerate(list_of_graphs):
@@ -154,8 +165,12 @@ def get_tau_result(list_of_graphs, MODEL, model_path, input_features, show_plot=
         list_of_pred = []
         list_of_actual = []
         for data in list_of_iso:
-            pred, actual = do_inference(
-                data, MODEL=MODEL, model_path=model_path, input_features=input_features)
+            if is_hetero:
+                pred, actual = do_inference(
+                    data, MODEL=MODEL, model_path=model_path, input_features=input_features, is_hetero=True)
+            else: 
+                pred, actual = do_inference(
+                    data, MODEL=MODEL, model_path=model_path, input_features=input_features)
             list_of_pred.append(pred)
             list_of_actual.append(actual)
 
@@ -171,3 +186,65 @@ def get_tau_result(list_of_graphs, MODEL, model_path, input_features, show_plot=
             plt.show()
 
     return np.array(tau_list)
+
+def get_tau_from_dataloader(dataloader, model_with_state_dict, num_mapping): 
+    from scipy.stats import kendalltau
+    tau_list = []
+    
+    list_of_pred = []
+    list_of_actual = []
+
+    for idx, data in enumerate(dataloader, start=1):
+        pred = model_with_state_dict(data.x_dict, data.edge_index_dict, data.batch_dict)
+        list_of_pred.append(pred.item())
+        list_of_actual.append(data.y.item())
+
+        if idx % num_mapping == 0:
+            tau, _ = kendalltau(list_of_pred, list_of_actual)
+            tau_list.append([idx, tau])
+            list_of_pred = []
+            list_of_actual = []
+
+    return np.array(tau_list)
+
+def get_tau_from_dataloader(dataloader, model_with_state_dict, num_mapping): 
+    from scipy.stats import kendalltau
+    tau_list = []
+    
+    list_of_pred = []
+    list_of_actual = []
+
+    for idx, data in enumerate(dataloader):
+        pred = model_with_state_dict(data.x_dict, data.edge_index_dict, data.batch_dict)
+        list_of_pred.append(pred.item())
+        list_of_actual.append(data.y.item())
+
+        if idx % num_mapping == 0:
+            print(f"List of Pred is {list_of_pred}")
+            print(f"List of Actual is {list_of_actual}")
+            tau, _ = kendalltau(list_of_pred, list_of_actual)
+            print(f"Tau is {tau}")
+            tau_list.append([idx, tau])
+            list_of_pred = []
+            list_of_actual = []
+
+    return np.array(tau_list)
+
+from torch.utils.data import Dataset, DataLoader
+class TestDataset(Dataset): 
+    def __init__(self, list_of_graphs): 
+        self.list_of_graphs = list_of_graphs    
+
+    def __len__(self):
+        num_of_graphs = len(self.list_of_graphs)
+        num_of_mapping_per_graph = len(self.list_of_graphs[0])
+        return num_of_graphs*num_of_mapping_per_graph
+
+    def __getitem__(self, idx):
+        graph_idx = idx // len(self.list_of_graphs[0])
+        mapping_idx = idx % len(self.list_of_graphs[0])
+        return self.list_of_graphs[graph_idx][mapping_idx]
+
+from torch_geometric.data import Batch
+def custom_collate(data_list):
+    return Batch.from_data_list(data_list)

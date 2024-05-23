@@ -116,14 +116,17 @@ The directory `gcn/results` contains the results of each training iteration. Ins
     Same as **V1** but implemented Residuals after every GraphConv  
     Model = 100th Epoch 
 
-5. V6 (9.5.24)  
+6. V6 (9.5.24)  
     Same as **V1** but implemented Residuals after every GraphConv  
     + added an extra conv layer with Residuals 
     Model = 250th Epoch 
 
+7. V14 (22.5.24)
+    Convolution part is 
+    Heterogeneous Graph Learning
 
-
-
+    Regression part is an LSTM. 
+    Result, output is a constant value. 
 
 
 | Test idx | V1 Tau | V2 Tau    | V3 Tau    |  V4 Tau    |  V5 Tau    |  V5 Tau    |  

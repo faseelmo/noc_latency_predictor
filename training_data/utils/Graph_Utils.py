@@ -148,9 +148,9 @@ class GraphUtils():
             hetero_data[node_type].num_nodes = len(node_indices)
 
             if node_type in ['task', 'start_task', 'end_task', 'link']:
-                hetero_data[node_type].x = torch.full((len(node_indices), 1), 10)
+                hetero_data[node_type].x = torch.full((len(node_indices), 1), 10, dtype=torch.float)
             else:
-                hetero_data[node_type].x = torch.full((len(node_indices), 1), 1)
+                hetero_data[node_type].x = torch.full((len(node_indices), 1), 1, dtype=torch.float)
 
         edge_index_dict = {}
         for src, dest in nx_graph_.edges():
